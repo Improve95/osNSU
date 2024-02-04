@@ -2,5 +2,5 @@
 #include <stdlib.h>
 
 void staticHello() {
-    printf("Static hello!");
+    printf("Static hello!\n");
 }

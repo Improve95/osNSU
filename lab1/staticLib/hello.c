@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "staticHello.h"
+#include "hello.h"
 
 int main() {
     staticHello();
