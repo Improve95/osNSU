@@ -39,15 +39,26 @@ int main(int argc, char *argv[]) {
         x = stat(filePath, &buf);
         if (!S_ISREG(buf.st_mode)) continue;
 
+        FILE *fileIn = fopen(filePath, "rb");
+        if (fileIn == NULL) exit(-1);
+
         reverseString(dir->d_name);
         snprintf(filePath, sizeof filePath, "%s/%s", argv[1], dir->d_name);
 
-        FILE *fileOut = fopen(filePath, "wи");
-        if (fileOut == NULL) {
-            printf("File not create\n");
-            exit(-1);
+        FILE *fileOut = fopen(filePath, "wb");
+        if (fileOut == NULL) exit(-1);
+
+
+        fseek(fileIn, 0, SEEK_END);
+        size_t fileSize = ftell(fileIn);
+        char c;
+        for (size_t i = 0; i < fileSize; i++) {
+            fread(&c, 1, 1, fileIn);
+            fwrite(&c, 1, 1, fileOut);
+            fseek(fileIn, i * (-1), SEEK_END);
         }
 
+        fclose(fileIn);
         fclose(fileOut);
     }
 
