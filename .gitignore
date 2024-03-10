@@ -37,6 +37,7 @@ build
 **build2
 out
 .vs
+.vscode
 CMakeSettings.json
 **idea
 **cmake-build-debug
