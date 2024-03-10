@@ -51,11 +51,12 @@ int main(int argc, char *argv[]) {
 
         fseek(fileIn, 0, SEEK_END);
         size_t fileSize = ftell(fileIn);
+        fseek(fileIn, -1, SEEK_END);
         char c;
         for (size_t i = 0; i < fileSize; i++) {
             fread(&c, 1, 1, fileIn);
             fwrite(&c, 1, 1, fileOut);
-            fseek(fileIn, i * (-1), SEEK_END);
+            fseek(fileIn, (i + 2) * (-1), SEEK_END);
         }
 
         fclose(fileIn);
