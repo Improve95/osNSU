@@ -15,54 +15,128 @@ void reverseString(char *string) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) exit(-1);
-
+void removeDir(char *filePath) {
     DIR *d;
     struct dirent *dir;
-    d = opendir(argv[1]);
+    d = opendir(filePath);
+    if (!d) { 
+        perror("cannot open dir"); 
+        exit(EXIT_FAILURE);
+    }
 
-    if (!d) exit(-1);
+    struct stat buf;
+    int x;
+    while((dir = readdir(d)) != NULL) {
+        if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0) {
+            char newFilePath[1024];
+            snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
+            x = stat(newFilePath, &buf);
+            if (x != 0) { 
+                perror("cannot check file type"); 
+                exit(EXIT_FAILURE);
+            }
 
-    reverseString(argv[1]);
-    mkdir(argv[1], 0700);
+
+            if (S_ISDIR(buf.st_mode)) {
+                removeDir(newFilePath);
+            } else {
+                if (unlink(newFilePath) != 0) {
+                    perror("cannot delete file");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+    }
+
+    if (rmdir(filePath) != 0) {
+        perror("cannot delete dir");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void copyDirRecursion(char *filePath, char *filePathForNewFile) {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(filePath);
+    if (!d) {
+        perror("cannot open dir");
+        exit(EXIT_FAILURE);
+    }
+
+    if (mkdir(filePathForNewFile, 0700) != 0) { 
+        printf("%s\n", filePath);
+        perror("cannot make dir");
+        exit(EXIT_FAILURE);
+    }
 
     struct stat buf;
     int x;
     while ((dir = readdir(d)) != NULL) {
-        
-        char filePath[2560];
-        reverseString(argv[1]);
-        snprintf(filePath, sizeof filePath, "%s/%s", argv[1], dir->d_name);
-        reverseString(argv[1]);
+        if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0) {
+            char newFilePath[1024], newfilePathForNewFile[1024];
+            snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
+            x = stat(newFilePath, &buf);
+            if (x != 0) { 
+                perror("cannot check file type"); 
+                exit(EXIT_FAILURE); 
+            }
+            
+            reverseString(dir->d_name);
+            snprintf(newfilePathForNewFile, sizeof newfilePathForNewFile, "%s/%s", filePathForNewFile, dir->d_name);
 
-        x = stat(filePath, &buf);
-        if (!S_ISREG(buf.st_mode)) continue;
+            if (S_ISDIR(buf.st_mode)) {
+                copyDirRecursion(newFilePath, newfilePathForNewFile);
+            } else {
+                FILE *fileIn = fopen(newFilePath, "rb");
+                if (fileIn == NULL) { 
+                    perror("cannot open input file");
+                    exit(EXIT_FAILURE);
+                }
 
-        FILE *fileIn = fopen(filePath, "rb");
-        if (fileIn == NULL) exit(-1);
+                FILE *fileOut = fopen(newfilePathForNewFile, "wb");
+                if (fileOut == NULL) {
+                    perror("cannot open output file");
+                    exit(EXIT_FAILURE);
+                }
 
-        reverseString(dir->d_name);
-        snprintf(filePath, sizeof filePath, "%s/%s", argv[1], dir->d_name);
+                fseek(fileIn, 0, SEEK_END);
+                size_t fileSize = ftell(fileIn);
+                fseek(fileIn, -1, SEEK_END);
+                char c;
+                for (size_t i = 0; i < fileSize; i++) {
+                    fread(&c, 1, 1, fileIn);
+                    fwrite(&c, 1, 1, fileOut);
+                    fseek(fileIn, (i + 2) * (-1), SEEK_END);
+                }
 
-        FILE *fileOut = fopen(filePath, "wb");
-        if (fileOut == NULL) exit(-1);
-
-
-        fseek(fileIn, 0, SEEK_END);
-        size_t fileSize = ftell(fileIn);
-        fseek(fileIn, -1, SEEK_END);
-        char c;
-        for (size_t i = 0; i < fileSize; i++) {
-            fread(&c, 1, 1, fileIn);
-            fwrite(&c, 1, 1, fileOut);
-            fseek(fileIn, (i + 2) * (-1), SEEK_END);
+                fclose(fileIn);
+                fclose(fileOut);
+            }
         }
-
-        fclose(fileIn);
-        fclose(fileOut);
     }
 
     closedir(d);
+}
+void copyDir(char *filePath) {
+    char reverseFilePath[256];
+    strcpy(reverseFilePath, filePath);
+    reverseString(reverseFilePath);
+    copyDirRecursion(filePath, reverseFilePath);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        perror("too few arguments");
+        exit(EXIT_FAILURE);
+    }
+
+    reverseString(argv[1]);
+    if (access(argv[1], F_OK) == 0) {
+        removeDir(argv[1]);
+    }
+    reverseString(argv[1]);
+
+    copyDir(argv[1]);
+    
     return 0;
 }
