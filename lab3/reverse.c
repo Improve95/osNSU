@@ -15,6 +15,42 @@ void reverseString(char *string) {
     }
 }
 
+void removeDir(char *filePath) {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(filePath);
+    if (!d) perror("cannot open dir");
+
+    struct stat buf;
+    int x;
+
+    while((dir = readdir(d)) != NULL) {
+        if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0) {
+
+            char newFilePath[1024];
+            snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
+            x = stat(newFilePath, &buf);
+            if (x != 0) { 
+                perror("cannot check file type"); 
+                exit(EXIT_FAILURE);
+            }
+
+
+            if (S_ISDIR(buf.st_mode)) {
+                removeDir(newFilePath);
+                if (rmdir(newFilePath) != 0) {
+                    perror("cannot delete dir");
+                    exit(EXIT_FAILURE);
+                }
+            } else {
+                if (unlink(newFilePath) != 0) {
+                    perror("cannot delete file");
+                }
+            }
+        }
+    }
+}
+
 void copyDir(char *filePath) {
     DIR *d;
     struct dirent *dir;
@@ -22,13 +58,16 @@ void copyDir(char *filePath) {
     if (!d) perror("cannot open dir");
 
     reverseString(filePath);
-    if (mkdir(filePath, 0700) != 0) perror("cannot make dir");
+    if (access(filePath, F_OK) == 0) {
+        //delete
+    } else {
+        if (mkdir(filePath, 0700) != 0) perror("cannot make dir");
+    }
 
     struct stat buf;
     int x;
     while ((dir = readdir(d)) != NULL) {
-        
-        char newFilePath[2560];
+        char newFilePath[1024];
         reverseString(filePath);
         snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
         reverseString(filePath);
@@ -65,7 +104,8 @@ void copyDir(char *filePath) {
 
 int main(int argc, char *argv[]) {
     if (argc < 2) perror("too few arguments");
-
-    copyDir(argv[1]);
+    // copyDir(argv[1]);
+    
+    removeDir("removeDir");
     return 0;
 }

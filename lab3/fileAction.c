@@ -45,7 +45,7 @@ void removeDirectory(const char* path) {
             char entryPath[1024];
             snprintf(entryPath, sizeof(entryPath), "%s/%s", path, entry->d_name);
 
-
+            if (entry->d_type == DT_DIR) {
                 removeDirectory(entryPath);
             }
             else {
