@@ -1,16 +1,17 @@
-#include <dirent.h> 
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <string.h>
 
 void createDirectory(const char* path) {
-    if (mkdir(path, 0700) != 0) {
+    if (mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
         perror("Error creating directory");
         exit(EXIT_FAILURE);
     }
+    printf("Directory created successfully: %s\n", path);
 }
 
 void listDirectory(const char* path) {
@@ -20,6 +21,8 @@ void listDirectory(const char* path) {
         exit(EXIT_FAILURE);
     }
 
+    printf("Contents of directory %s:\n", path);
+
     struct dirent* entry;
     while ((entry = readdir(dir)) != NULL) {
         printf("%s\n", entry->d_name);
@@ -28,43 +31,40 @@ void listDirectory(const char* path) {
     closedir(dir);
 }
 
-void removeDir(char *filePath) {
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(filePath);
-    if (!d) { 
-        perror("cannot open dir"); 
+
+void removeDirectory(const char* path) {
+    DIR* dir = opendir(path);
+    if (dir == NULL) {
+        perror("Error opening directory");
         exit(EXIT_FAILURE);
     }
 
-    struct stat buf;
-    int x;
-    while((dir = readdir(d)) != NULL) {
-        if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0) {
-            char newFilePath[1024];
-            snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
-            x = stat(newFilePath, &buf);
-            if (x != 0) { 
-                perror("cannot check file type"); 
-                exit(EXIT_FAILURE);
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            char entryPath[1024];
+            snprintf(entryPath, sizeof(entryPath), "%s/%s", path, entry->d_name);
+
+            if (entry->d_type == DT_DIR) {
+                removeDirectory(entryPath);
             }
-
-
-            if (S_ISDIR(buf.st_mode)) {
-                removeDir(newFilePath);
-            } else {
-                if (unlink(newFilePath) != 0) {
-                    perror("cannot delete file");
+            else {
+                if (unlink(entryPath) == -1) {
+                    perror("Error removing file");
                     exit(EXIT_FAILURE);
                 }
             }
         }
     }
 
-    if (rmdir(filePath) != 0) {
-        perror("cannot delete dir");
+    closedir(dir);
+
+    if (rmdir(path) == -1) {
+        perror("Error removing directory");
         exit(EXIT_FAILURE);
     }
+
+    printf("Directory removed successfully: %s\n", path);
 }
 
 void createFile(const char* path) {
@@ -74,6 +74,7 @@ void createFile(const char* path) {
         exit(EXIT_FAILURE);
     }
     fclose(file);
+    printf("File created successfully: %s\n", path);
 }
 
 void showFileContent(const char* path) {
@@ -89,20 +90,24 @@ void showFileContent(const char* path) {
     }
 
     fclose(file);
+    printf("\n");
 }
 
 void removeFile(const char* path) {
-    if (unlink(path) != 0) {
+    if (unlink(path) == -1) {
         perror("Error removing file");
         exit(EXIT_FAILURE);
     }
+
+    printf("File removed successfully: %s\n", path);
 }
 
 void createSymbolicLink(const char* target, const char* linkName) {
-    if (symlink(target, linkName) != 0) {
+    if (symlink(target, linkName) == -1) {
         perror("Error creating symbolic link");
         exit(EXIT_FAILURE);
     }
+    printf("Symbolic link created successfully: %s -> %s\n", linkName, target);
 }
 
 void showSymbolicLinkContent(const char* path) {
@@ -129,6 +134,7 @@ void showLinkedFileContent(const char* path) {
     }
 
     fclose(file);
+    printf("\n");
 }
 
 void removeSymbolicLink(const char* path) {
@@ -138,6 +144,7 @@ void removeSymbolicLink(const char* path) {
     }
     printf("Symbolic link removed successfully: %s\n", path);
 }
+
 
 void createHardLink(const char* target, const char* linkName) {
     if (link(target, linkName) == -1) {
