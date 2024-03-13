@@ -15,39 +15,36 @@ void reverseString(char *string) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) exit(-1);
-
+void copyDir(char *filePath) {
     DIR *d;
     struct dirent *dir;
-    d = opendir(argv[1]);
+    d = opendir(filePath);
+    if (!d) perror("cannot open dir");
 
-    if (!d) exit(-1);
-
-    reverseString(argv[1]);
-    mkdir(argv[1], 0700);
+    reverseString(filePath);
+    if (mkdir(filePath, 0700) != 0) perror("cannot make dir");
 
     struct stat buf;
     int x;
     while ((dir = readdir(d)) != NULL) {
         
-        char filePath[2560];
-        reverseString(argv[1]);
-        snprintf(filePath, sizeof filePath, "%s/%s", argv[1], dir->d_name);
-        reverseString(argv[1]);
+        char newFilePath[2560];
+        reverseString(filePath);
+        snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
+        reverseString(filePath);
 
-        x = stat(filePath, &buf);
+        x = stat(newFilePath, &buf);
+        if (x != 0) { perror("cannot check file type"); }
         if (!S_ISREG(buf.st_mode)) continue;
 
-        FILE *fileIn = fopen(filePath, "rb");
-        if (fileIn == NULL) exit(-1);
+        FILE *fileIn = fopen(newFilePath, "rb");
+        if (fileIn == NULL) perror("cannot open input file");
 
         reverseString(dir->d_name);
-        snprintf(filePath, sizeof filePath, "%s/%s", argv[1], dir->d_name);
+        snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
 
-        FILE *fileOut = fopen(filePath, "wb");
-        if (fileOut == NULL) exit(-1);
-
+        FILE *fileOut = fopen(newFilePath, "wb");
+        if (fileOut == NULL) perror("cannot open output file");
 
         fseek(fileIn, 0, SEEK_END);
         size_t fileSize = ftell(fileIn);
@@ -64,5 +61,11 @@ int main(int argc, char *argv[]) {
     }
 
     closedir(d);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) perror("too few arguments");
+
+    copyDir(argv[1]);
     return 0;
 }
