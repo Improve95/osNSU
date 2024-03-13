@@ -19,7 +19,10 @@ void removeDir(char *filePath) {
     DIR *d;
     struct dirent *dir;
     d = opendir(filePath);
-    if (!d) perror("cannot open dir");
+    if (!d) { 
+        perror("cannot open dir"); 
+        exit(EXIT_FAILURE);
+    }
 
     struct stat buf;
     int x;
@@ -38,16 +41,18 @@ void removeDir(char *filePath) {
 
             if (S_ISDIR(buf.st_mode)) {
                 removeDir(newFilePath);
-                if (rmdir(newFilePath) != 0) {
-                    perror("cannot delete dir");
-                    exit(EXIT_FAILURE);
-                }
             } else {
                 if (unlink(newFilePath) != 0) {
                     perror("cannot delete file");
+                    exit(EXIT_FAILURE);
                 }
             }
         }
+    }
+
+    if (rmdir(filePath) != 0) {
+        perror("cannot delete dir");
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -55,13 +60,15 @@ void copyDir(char *filePath) {
     DIR *d;
     struct dirent *dir;
     d = opendir(filePath);
-    if (!d) perror("cannot open dir");
+    if (!d) {
+        perror("cannot open dir");
+        exit(EXIT_FAILURE);
+    }
 
     reverseString(filePath);
-    if (access(filePath, F_OK) == 0) {
-        //delete
-    } else {
-        if (mkdir(filePath, 0700) != 0) perror("cannot make dir");
+    if (mkdir(filePath, 0700) != 0) { 
+        perror("cannot make dir");
+        exit(EXIT_FAILURE);
     }
 
     struct stat buf;
@@ -73,17 +80,27 @@ void copyDir(char *filePath) {
         reverseString(filePath);
 
         x = stat(newFilePath, &buf);
-        if (x != 0) { perror("cannot check file type"); }
+        if (x != 0) { 
+            perror("cannot check file type"); 
+            exit(EXIT_FAILURE); 
+        }
+
         if (!S_ISREG(buf.st_mode)) continue;
 
         FILE *fileIn = fopen(newFilePath, "rb");
-        if (fileIn == NULL) perror("cannot open input file");
+        if (fileIn == NULL) { 
+            perror("cannot open input file");
+            exit(EXIT_FAILURE);
+        }
 
         reverseString(dir->d_name);
         snprintf(newFilePath, sizeof newFilePath, "%s/%s", filePath, dir->d_name);
 
         FILE *fileOut = fopen(newFilePath, "wb");
-        if (fileOut == NULL) perror("cannot open output file");
+        if (fileOut == NULL) {
+            perror("cannot open output file");
+            exit(EXIT_FAILURE);
+        }
 
         fseek(fileIn, 0, SEEK_END);
         size_t fileSize = ftell(fileIn);
@@ -103,9 +120,17 @@ void copyDir(char *filePath) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) perror("too few arguments");
-    // copyDir(argv[1]);
+    if (argc < 2) {
+        perror("too few arguments");
+        exit(EXIT_FAILURE);
+    }
+
+    if (access(argv[1], F_OK)) {
+        reverseString(argv[1]);
+        removeDir(argv[1]);
+        reverseString(argv[1]);
+    }
+    copyDir(argv[1]);
     
-    removeDir("removeDir");
     return 0;
 }
