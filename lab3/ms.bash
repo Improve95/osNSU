@@ -1,2 +1,2 @@
-gcc pagemapPrint.c -o pm.out
-./pm.out $1
+gcc pagemapPrint2.c -o pm.out
+./pm.out $1 $2
