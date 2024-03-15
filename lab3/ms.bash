@@ -1,2 +1,2 @@
-gcc reverse.c -o reverse.out
-./reverse.out testDir
+gcc pagemapPrint.c -o pm.out
+./pm.out $1

@@ -109,7 +109,7 @@ void showSymbolicLinkContent(const char* path) {
     char target[1024];
     ssize_t bytesRead = readlink(path, target, sizeof(target) - 1);
     if (bytesRead == -1) {
-        perror("Error reading symbolic link");
+        perror("Error reading symbolic link"); 
         exit(EXIT_FAILURE);
     }
     target[bytesRead] = '\0';
