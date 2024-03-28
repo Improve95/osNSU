@@ -4,7 +4,7 @@
 # Compiled Object files
 *.slo
 *.lo
-*.o
+# *.o
 *.obj
 
 # Precompiled Headers
@@ -35,11 +35,11 @@
 build
 **build_
 **build2
-out
+# out
 .vs
 .vscode
 CMakeSettings.json
 **idea
 **cmake-build-debug
-**out
+# **out
 *.md
