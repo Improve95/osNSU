@@ -57,7 +57,8 @@ void f2() {
     arr2 += arr3 - arr2;
     printf("3: %s\n", arr2);
     free(arr2);
-
+    
+    printf("pid: %d\n", getpid());
     while(1) {
         sleep(10);
     }
