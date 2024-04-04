@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
- 
+#include <sys/mman.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 void f1(int argc, char *argv[]) {
     printf("pid: %d\n", getpid());
     sleep(1);
@@ -30,25 +34,47 @@ void f2() {
 }
 
 void f3() {
-    printf("pid: %d\n", getpid());
-    sleep(4);
-    for (int i = 0; i < 100000; i++) {
-        malloc(1000);
-        usleep(100000);
+    sleep(7);
+    int s = 100;
+    char *a[s];
+    for (int i = 0; i < s; i++) {
+        a[i] = malloc(1000);
+        // usleep(100000);
         fillSize += 1000;
         printf("%ld\n", fillSize);
+    }
+    for (int i = 0; i < s; i++) {
+        free(a[i]);
     }
 }
 
 void f4() {
-    
+    printf("mmap initialize\n");
+
+    void *region = mmap(NULL, 10 * 4096, PROT_READ | PROT_WRITE | PROT_EXEC,  MAP_PRIVATE | (32), -1, 0);
+    if (region == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("region: %p\n", region);
+
+    sleep(10);
+
+    mprotect(region, 10 * 4096, PROT_NONE);
+
+    sleep(10);
 }
 
-int main(int argc, char *argv[]) {
+int main(/*int argc, char *argv[]*/) {
     // f1(argc, argv);
     // f2();
+
+
+    printf("pid: %d\n", getpid());
     // f3();
-    
 
     return 0;
 }
+
+#pragma GCC diagnostic pop
