@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <string.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -63,7 +64,9 @@ void f4() {
 
     mprotect(region, 10 * 4096, PROT_NONE);
 
-    sleep(10);
+    sleep(5);
+
+    memcpy(region, "Hello", 10);
 }
 
 int main(/*int argc, char *argv[]*/) {
@@ -73,6 +76,7 @@ int main(/*int argc, char *argv[]*/) {
 
     printf("pid: %d\n", getpid());
     // f3();
+    f4();
 
     return 0;
 }
