@@ -33,20 +33,34 @@ void f1() {
 
 void f2() {
     char *arr1 = malloc(100);
-    strcpy(arr1, "Hello, World!");
-    printf("print1: %s\n", arr1);
-
+    strcpy(arr1, "Hello, World! arr1");
+    printf("1: %p\n", arr1);
+    printf("1: %s\n", arr1);
     free(arr1);
-    printf("print2: %s\n", arr1);
+    printf("1: %p\n", arr1);
+    printf("1: %s\n", arr1);
 
 
     char *arr2 = malloc(100);
-    strcpy(arr2, "Hello, World!");
-    printf("print3: %s\n", arr2);
+    printf("2: %p\n", arr2);
 
-    arr2 += 50;
+    char *arr3 = malloc(100);
+    printf("3: %p\n", arr3);
+    strcpy(arr3, "Hello, World! arr3");
+
+    strcpy(arr2, "Hello, World! arr2");
+    printf("2: %s\n", arr2);
+
+    // arr2 += 1;
+    // free(arr2);
+
+    arr2 += arr3 - arr2;
+    printf("3: %s\n", arr2);
     free(arr2);
-    printf("print: %s\n", arr2);
+
+    while(1) {
+        sleep(10);
+    }
 }
 
 int * f4i() {
@@ -66,13 +80,19 @@ void f3() {
     char *env = getenv("MY_VAR");
     env = "fsdfasd";
     printf("%s\n", env);
+    printf("%p\n", env);
+
+    printf("pid: %d\n", getpid());
+    while(1) {
+        sleep(10);
+    }
 }
 
 int main() {
     // f1();
-    // f2();
+    f2();
+    // f4i();
     // f3();
-    f4();
 
     return 0;
 }
