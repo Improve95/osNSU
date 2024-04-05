@@ -38,7 +38,10 @@ void f2() {
     printf("1: %s\n", arr1);
     free(arr1);
     printf("1: %p\n", arr1);
-    printf("1: %s\n", arr1);
+    for (int i = 0; i < 100; i++) {
+        printf("%d", arr1[i]);
+    }
+    printf("\n");
 
 
     char *arr2 = malloc(100);

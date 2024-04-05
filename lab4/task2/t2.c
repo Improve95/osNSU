@@ -3,9 +3,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <string.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
+#include <signal.h>
 
 void f1(int argc, char *argv[]) {
     printf("pid: %d\n", getpid());
@@ -49,10 +47,15 @@ void f3() {
     }
 }
 
+void handler(int signum) {
+    printf("catch sigsegv\n");
+    exit(1);
+}
+
 void f4() {
     printf("mmap initialize\n");
 
-    void *region = mmap(NULL, 10 * 4096, PROT_READ | PROT_WRITE | PROT_EXEC,  MAP_PRIVATE | (32), -1, 0);
+    void *region = mmap(NULL, 10 * 4096, PROT_NONE | PROT_READ | PROT_WRITE,  MAP_PRIVATE | (32), -1, 0);
     if (region == MAP_FAILED) {
         perror("mmap");
         exit(EXIT_FAILURE);
@@ -60,25 +63,29 @@ void f4() {
 
     printf("region: %p\n", region);
 
-    sleep(10);
+    sleep(1);
 
     mprotect(region, 10 * 4096, PROT_NONE);
 
-    sleep(5);
+    sleep(10);
 
-    memcpy(region, "Hello", 10);
+    // signal(SIGSEGV, handler);
+    // int a = *((int*)region);
+
+    munmap(region + 4 * 4096, 2 * 4096);
+
+    sleep(10);
 }
 
 int main(/*int argc, char *argv[]*/) {
     // f1(argc, argv);
-    // f2();
 
+    // f2();
 
     printf("pid: %d\n", getpid());
     // f3();
+
     f4();
 
     return 0;
 }
-
-#pragma GCC diagnostic pop
