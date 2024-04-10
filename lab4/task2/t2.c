@@ -23,7 +23,7 @@ void fillStack() {
     char a[4096];
     fillSize += 4096;
     printf("%ld\n", fillSize);
-    usleep(500000);
+    usleep(200000);
     fillStack();
 }
 
@@ -33,17 +33,20 @@ void f2() {
 }
 
 void f3() {
-    sleep(7);
-    int s = 100;
+    sleep(5);
+    int s = 160;
     char *a[s];
     for (int i = 0; i < s; i++) {
+        usleep(50000); 
         a[i] = malloc(1000);
-        // usleep(100000);
         fillSize += 1000;
         printf("%ld\n", fillSize);
     }
     for (int i = 0; i < s; i++) {
+        usleep(50000);
         free(a[i]);
+        fillSize -= 1000;
+        printf("%ld\n", fillSize);
     }
 }
 
@@ -53,6 +56,8 @@ void handler(int signum) {
 }
 
 void f4() {
+    sleep(5);
+
     printf("mmap initialize\n");
 
     void *region = mmap(NULL, 10 * 4096, PROT_NONE | PROT_READ | PROT_WRITE,  MAP_PRIVATE | (32), -1, 0);
@@ -67,17 +72,17 @@ void f4() {
 
     mprotect(region, 10 * 4096, PROT_NONE);
 
-    sleep(10);
+    sleep(5);
 
     // signal(SIGSEGV, handler);
     // int a = *((int*)region);
 
     munmap(region + 4 * 4096, 2 * 4096);
 
-    sleep(10);
+    sleep(5);
 }
 
-int main(/*int argc, char *argv[]*/) {
+int main(int argc, char *argv[]) {
     // f1(argc, argv);
 
     // f2();

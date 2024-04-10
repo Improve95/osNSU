@@ -36,10 +36,14 @@ void f2() {
     strcpy(arr1, "Hello, World! arr1");
     printf("1: %p\n", arr1);
     printf("1: %s\n", arr1);
+    for (int i = 0; i < 100; i++) {
+        printf("%c", arr1[i]);
+    }
+    printf("\n");
     free(arr1);
     printf("1: %p\n", arr1);
     for (int i = 0; i < 100; i++) {
-        printf("%d", arr1[i]);
+        printf("%c", arr1[i]);
     }
     printf("\n");
 
@@ -95,7 +99,7 @@ void f3() {
 int main() {
     // f1();
     f2();
-    // f4i();
+    // f4();
     // f3();
 
     return 0;
