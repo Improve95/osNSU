@@ -28,6 +28,8 @@ int main() {
         printf("Parent pid from parent proc: %d\n", getpid());
     }
     
+    sleep(10);
+
     sleep(wait_time);
     printf("\n");
 
