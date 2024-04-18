@@ -2,16 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <sys/prctl.h>
+#include <sys/wait.h>
 #include <signal.h>
 
 int global_var = 5;
 int wait_time = 3;
-
-void handler(int sig) {
-    printf("current pid: %d\n", getpid());
-    printf("terminated: %d\n", sig);
-}
 
 int main() {
     int local_var = 10;
@@ -42,10 +37,10 @@ int main() {
     } else {
         printf("global_var from parent: %d\n", global_var);
         printf("local_var from parent: %d\n", local_var);
-    }*/
-
+    }
     sleep(wait_time);
-    printf("\n");
+    printf("\n");*/
+
 
     if (fork_pid == 0) {
         global_var = 50;
@@ -69,17 +64,26 @@ int main() {
         printf("local_var from parent: %d\n", local_var);
     }*/
     
-    sleep(wait_time);
+    sleep(10);
     printf("\n");
 
     if (fork_pid == 0) {
-        sleep(5);
-        printf("child process terminated\n");
+        // printf("child process terminated\n");
+        // exit(5);
 
-        signal(SIGCHLD, handler);
-        _exit(5);
+        printf("child process failure\n");
+        int *a = malloc(10);
+        free(++a);
+
     } else {
-        sleep(10);
+        int status;
+        waitpid(fork_pid, &status, 0);
+
+        if (WIFEXITED(status)) {
+            printf("child process terminated with code: %d\n", WEXITSTATUS(status));
+        } else if (WIFSIGNALED(status)) {
+            printf("child process terminated with signal: %d\n", WTERMSIG(status));
+        }
     }
 
     return 0;
