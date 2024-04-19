@@ -33,19 +33,19 @@ void f2() {
 }
 
 void f3() {
-    sleep(5);
-    int s = 160;
+    sleep(8);
+    int s = 200;
     char *a[s];
     for (int i = 0; i < s; i++) {
         usleep(50000); 
-        a[i] = malloc(1000);
-        fillSize += 1000;
+        a[i] = malloc(1500);
+        fillSize += 1500;
         printf("%ld\n", fillSize);
     }
-    for (int i = 0; i < s; i++) {
+    for (int i = 30; i < s - 30; i++) {
         usleep(50000);
         free(a[i]);
-        fillSize -= 1000;
+        fillSize -= 1500;
         printf("%ld\n", fillSize);
     }
 }
@@ -88,9 +88,9 @@ int main(int argc, char *argv[]) {
     // f2();
 
     printf("pid: %d\n", getpid());
-    // f3();
+    f3();
 
-    f4();
+    // f4();
 
     return 0;
 }

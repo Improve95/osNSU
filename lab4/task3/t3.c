@@ -5,19 +5,15 @@
 #include <string.h>
 #include <signal.h>
 
-void handler(int signum) {
+void my_free(void *__ptr) {
+
+}
+
+void * my_malloc(size_t __size) {
     
 }
 
-
-void my_free() {
-
-}
-
-void * my_malloc() {
-
-}
-
 int main() {
-
+    int *a = my_malloc(10 * sizeof(int));
+    my_free(a);
 }
