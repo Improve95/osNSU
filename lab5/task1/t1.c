@@ -43,7 +43,6 @@ int main() {
     sleep(wait_time);
     printf("\n");*/
 
-
     if (fork_pid == 0) {
         global_var = 50;
         local_var = 100;
