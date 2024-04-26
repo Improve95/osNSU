@@ -69,12 +69,12 @@ int main() {
     printf("\n");
 
     if (fork_pid == 0) {
-        // printf("child process terminated\n");
-        // exit(5);
+        printf("child process terminated\n");
+        exit(5);
 
-        printf("child process failure\n");
-        int *a = malloc(10);
-        free(++a);
+        // printf("child process failure\n");
+        // int *a = malloc(10);
+        // free(++a);
 
     } else {
         int status;
