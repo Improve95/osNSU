@@ -14,12 +14,14 @@
 int recursion(int recursion_depth) {
     if (recursion_depth > 0) {
         char str[10];
+        printf("%p\n", &recursion_depth);
         snprintf(str, 10, "hello-%d", recursion_depth);
         recursion_depth--;
         recursion(recursion_depth);
     } else {
         printf("end of recursion");
     }
+    return 9999;
 }
 
 int child_func() {
