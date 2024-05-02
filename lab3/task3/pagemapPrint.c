@@ -1,48 +1,91 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
-#define MAX_PATH_LENGTH 256
-#define PAGE_SIZE 4096
+#define PAGEMAP_ENTRY 8
+#define GET_BIT(X,Y) (X & ((uint64_t)1<<Y)) >> Y
+#define GET_PFN(X) X & 0x7FFFFFFFFFFFFF
 
-void read_pagemap(const char *path) {
-    FILE *file = fopen(path, "rb");
-    if (file == NULL) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
-    }
+const int __endian_bit = 1;
+#define is_bigendian() ( (*(char*)&__endian_bit) == 0 )
 
-    unsigned long long pagemap_entry;
-    unsigned long long pfn;
-    int page_present;
-    int page_swapped;
-    int page_file_mapped;
-    int page_file_offset;
+int read_pagemap(char * path_buf, unsigned long virt_addr) {
+   printf("Big endian? %d\n", is_bigendian());
+   FILE *fileIn = fopen(path_buf, "rb");
+   if (!fileIn) {
+      printf("Error! Cannot open %s\n", path_buf);
+      return -1;
+   }
+   
+   uint64_t file_offset = virt_addr / getpagesize() * PAGEMAP_ENTRY;
+   printf("Vaddr: 0x%lx, Page_size: %d, Entry_size: %d\n", virt_addr, getpagesize(), PAGEMAP_ENTRY);
+   printf("Reading %s at 0x%llx\n", path_buf, (unsigned long long) file_offset);
+   fseek(fileIn, file_offset, SEEK_SET);
 
-    while (fread(&pagemap_entry, sizeof(unsigned long long), 1, file) == 1) {
-        pfn = pagemap_entry & ((1ULL << 55) - 1); // Берем только младшие 55 бит (биты 0-54)
-        page_present = (pagemap_entry >> 63) & 1; // Берем бит 63, который указывает на присутствие страницы в памяти
-        page_swapped = (pagemap_entry >> 62) & 1; // Берем бит 62, который указывает на обмен страницы на диск
-        page_file_mapped = (pagemap_entry >> 61) & 1; // Берем бит 61, который указывает на сопоставление страницы с файлом
-        page_file_offset = (pagemap_entry >> 0) & ((1ULL << 55) - 1); // Берем биты 0-54, которые указывают смещение в файле (если страница сопоставлена с файлом)
+   uint64_t read_val = 0;
+   unsigned char c_buf[PAGEMAP_ENTRY];
+   for(int i = 0; i < PAGEMAP_ENTRY; i++){
+      char c = getc(fileIn);
+      if(c == EOF){
+         printf("\nReached end of the file\n");
+         return 0;
+      }
+      if (is_bigendian()) {
+         c_buf[i] = c;
+      } else {
+         c_buf[PAGEMAP_ENTRY - i - 1] = c;
+      }
+      printf("[%d]0x%x ", i, c);
+   }
 
-        printf("PFN: 0x%llx, Present: %d, Swapped: %d, File Mapped: %d, File Offset: %d\n", 
-                pfn, page_present, page_swapped, page_file_mapped, page_file_offset);
-    }
+   for(int i = 0; i < PAGEMAP_ENTRY; i++){
+      read_val = (read_val << 8) + c_buf[i];
+   }
+   printf("\n");
+   printf("Result: 0x%llx\n", (unsigned long long) read_val);
 
-    fclose(file);
+   if(GET_BIT(read_val, 63)) {
+      printf("PFN: 0x%llx\n",(unsigned long long) GET_PFN(read_val));
+   } else {
+      printf("Page not present\n");
+   }
+   if(GET_BIT(read_val, 62)) {
+      printf("Page swapped\n");
+   }
+
+   fclose(fileIn);
+   return 0;
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <pid>\n", argv[0]);
-        exit(EXIT_FAILURE);
+   if (argc != 3) { 
+      printf("Argument number is not correct!\n pagemap PID VIRTUAL_ADDRESS\n");
+      return -1;
+   }
+
+   int pid;
+   char path_buf [0x100] = {};
+   if(!memcmp(argv[1], "self", sizeof("self"))) {
+      sprintf(path_buf, "/proc/self/pagemap");
+      pid = -1;
+   } else {
+      char *end;
+      pid = strtol(argv[1], &end, 10);
+      if (end == argv[1] || *end != '\0' || pid <= 0){ 
+         printf("PID must be a positive number or 'self'\n");
+         return -1;
+      }
     }
 
-    char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "/proc/%s/pagemap", argv[1]);
-
-    read_pagemap(path);
+    unsigned long virt_addr = strtol(argv[2], NULL, 16);
+    if(pid != -1) {
+        sprintf(path_buf, "/proc/%u/pagemap", pid);
+    }
+    
+    read_pagemap(path_buf, virt_addr);
 
     return 0;
 }
