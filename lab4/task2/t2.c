@@ -57,10 +57,8 @@ void handler(int signum) {
 
 void f4() {
     sleep(5);
-
     printf("mmap initialize\n");
-
-    void *region = mmap(NULL, 10 * 4096, PROT_NONE | PROT_READ | PROT_WRITE,  MAP_PRIVATE | (32), -1, 0);
+    void *region = mmap(NULL, 10 * 4096, PROT_NONE | PROT_READ | PROT_WRITE,  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (region == MAP_FAILED) {
         perror("mmap");
         exit(EXIT_FAILURE);
@@ -68,7 +66,7 @@ void f4() {
 
     printf("region: %p\n", region);
 
-    sleep(1);
+    sleep(5);
 
     mprotect(region, 10 * 4096, PROT_NONE);
 
@@ -88,9 +86,9 @@ int main(int argc, char *argv[]) {
     // f2();
 
     printf("pid: %d\n", getpid());
-    f3();
+    // f3();
 
-    // f4();
+    f4();
 
     return 0;
 }
