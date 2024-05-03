@@ -14,7 +14,7 @@
 #define SIZE 4096
 
 int main() {
-    char val = 0;
+    unsigned char val = 0;
 
     int fd = open("./shared_file", O_RDWR | O_CREAT, 0660);
     if (fd == -1) {
