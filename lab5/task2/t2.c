@@ -40,16 +40,16 @@ int main() {
     sleep(wait_time);
     printf("\n");*/
 
-    if (fork_pid == 0) {
-        global_var = 50;
-        local_var = 100;
-        printf("global_var from child: %d\n", global_var);
-        printf("local_var from child: %d\n", local_var);
-    } else {
-        sleep(5);
-        printf("global_var from parent: %d\n", global_var);
-        printf("local_var from parent: %d\n", local_var);
-    }
+    // if (fork_pid == 0) {
+    //     global_var = 50;
+    //     local_var = 100;
+    //     printf("global_var from child: %d\n", global_var);
+    //     printf("local_var from child: %d\n", local_var);
+    // } else {
+    //     sleep(5);
+    //     printf("global_var from parent: %d\n", global_var);
+    //     printf("local_var from parent: %d\n", local_var);
+    // }
 
     /*if (fork_pid == 0) {
         sleep(5);
@@ -66,10 +66,12 @@ int main() {
     printf("\n");
 
     if (fork_pid == 0) {
+        sleep(10);
         printf("child process terminated\n");
         exit(0);
     } else {
-        sleep(10);
+        printf("parent exit");
+        exit(0);
     }
     
     return 0;

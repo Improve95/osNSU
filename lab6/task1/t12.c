@@ -27,16 +27,18 @@ int main() {
     int run = 1;
     while (run) {
         for (int i = 0; i < SIZE; ++i) {
-            int buf_res = buf[i];
+            unsigned char buf_res = buf[i];
             // printf("%d ", buf_res);
             // fflush(stdout);
             // sleep(1);
 
+            printf("buf_res %d %d\n", buf_res, prev_res);
             if (buf_res < prev_res && buf_res != 0) {
-                printf("sequence failure\n");
-                run = 0;
+                printf("sequence failure %c\n", buf_res);
+                // run = 0;
                 break;
             }
+            prev_res = buf_res;
         }
     }
 
