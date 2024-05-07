@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 
-#define HEAP_CAP 25 * 4096
+#define HEAP_CAP 1024
 #define HEAP_ALLOCED_CAP 1024
 
 static void *heap;
@@ -93,14 +93,18 @@ void my_free(void *ptr) {
 }
 
 int main() {
-    int fd = open("./check_file", O_RDWR | O_CREAT, 0660);
+    int fd = open("./heap", O_RDWR | O_CREAT, 0660);
     if (fd == -1) {
-        perror("open shared_file");
+        perror("open heap");
+        exit(EXIT_FAILURE);
+    }
+    if (ftruncate(fd, 0) == -1 || ftruncate(fd, HEAP_CAP) == -1) {
+        perror("ftruncate");
         exit(EXIT_FAILURE);
     }
 
-    heap = mmap(NULL, HEAP_CAP, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-    if ((size_t)heap == -1) {
+    heap = mmap(NULL, HEAP_CAP, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if ((size_t)heap == (size_t)-1) {
         perror("maps");
         exit(EXIT_FAILURE);
     }
@@ -120,7 +124,13 @@ int main() {
 
     heap_dump_alooced_chunks();
 
+    sleep(3);
+    memcpy(ptr_a[2], "hello_world1", 12);
+    
+    sleep(3);
+    memcpy(ptr_a[3], "hello_world2", 12);
 
+    printf("%s\n", (char *)ptr_a[2]);
 
     munmap(heap, HEAP_CAP);
     return 0;
