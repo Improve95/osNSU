@@ -29,34 +29,44 @@ void heap_dump_alooced_chunks() {
     }
 }
 
+void my_sigsegv(int signum, void *ptr) {
+    switch (signum) {
+        case 1:
+            printf("memory allocation error\n");
+            break;
+        case 2:
+            printf("Segmentation fault - free: %p\n", ptr);
+    }
+    exit(EXIT_FAILURE);
+}
+
 void * replace_chunk(Heap_Chunk *chunk, size_t size) {
     chunk->size = size;
     chunk->is_free = false;
-    printf("size: %ld\n", size);
     return chunk->start;
 }
 
 void * create_new_chunk(size_t size) {
     void *chunk_start = heap + heap_size;
-        heap_size += size;
+    heap_size += size;
 
-        const Heap_Chunk chunk = {
-            .start = chunk_start,
-            .size = size,
-            .is_free = false,
-        };
+    const Heap_Chunk chunk = {
+        .start = chunk_start,
+        .size = size,
+        .is_free = false,
+    };
 
-        assert(heap_alloced_size <= HEAP_ALLOCED_CAP);
+    if (heap_alloced_size > HEAP_ALLOCED_CAP) my_sigsegv(1, 0);
 
-        heap_alloced[heap_alloced_size] = chunk;
-        heap_alloced_size++;
+    heap_alloced[heap_alloced_size] = chunk;
+    heap_alloced_size++;
 
-        return chunk_start;
+    return chunk_start;
 }
 
 void * my_malloc(size_t size) {
     if (size > 0) {
-        assert(heap_size + size <= HEAP_CAP);
+        if (heap_size + size > HEAP_CAP) my_sigsegv(1, 0);
         
         for (size_t i = 0; i < heap_alloced_size; ++i) {
             if (heap_alloced[i].is_free == true && size <= heap_alloced[i].size) {
@@ -75,8 +85,10 @@ void my_free(void *ptr) {
     for (size_t i = 0; i < heap_alloced_size; ++i) {
         if (heap_alloced[i].start == ptr) {
             heap_alloced[i].is_free = true;
+            return;
         }
     }
+    my_sigsegv(2, ptr);
 }
 
 int main() {
@@ -90,7 +102,7 @@ int main() {
     for (int i = 0; i < 10; ++i) {
         ptr_a[i] = my_malloc(50);
     }
-
+    
     heap_dump_alooced_chunks();
 
     my_free(ptr_a[2]);
@@ -100,6 +112,8 @@ int main() {
     ptr_a[2] = my_malloc(40);
 
     heap_dump_alooced_chunks();
+
+    
 
     munmap(heap, HEAP_CAP);
     return 0;
