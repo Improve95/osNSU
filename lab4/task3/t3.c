@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <fcntl.h>
 
 #define HEAP_CAP 25 * 4096
 #define HEAP_ALLOCED_CAP 1024
@@ -92,9 +93,13 @@ void my_free(void *ptr) {
 }
 
 int main() {
-    int fd = open("check_file", )
+    int fd = open("./check_file", O_RDWR | O_CREAT, 0660);
+    if (fd == -1) {
+        perror("open shared_file");
+        exit(EXIT_FAILURE);
+    }
 
-    heap = mmap(NULL, HEAP_CAP, PROT_NONE | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    heap = mmap(NULL, HEAP_CAP, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
     if ((size_t)heap == -1) {
         perror("maps");
         exit(EXIT_FAILURE);
