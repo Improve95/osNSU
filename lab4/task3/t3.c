@@ -92,6 +92,8 @@ void my_free(void *ptr) {
 }
 
 int main() {
+    int fd = open("check_file", )
+
     heap = mmap(NULL, HEAP_CAP, PROT_NONE | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if ((size_t)heap == -1) {
         perror("maps");
@@ -113,7 +115,7 @@ int main() {
 
     heap_dump_alooced_chunks();
 
-    
+
 
     munmap(heap, HEAP_CAP);
     return 0;
