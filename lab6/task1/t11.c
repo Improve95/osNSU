@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#define SIZE 4096
+#define SIZE 256
 
 int main() {
     unsigned char val = 0;
