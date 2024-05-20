@@ -28,7 +28,12 @@ int child_func() {
     int recursion_depth = 10;
     recursion(recursion_depth);
     
+    // while (1) {
+        // sleep(5);
+    // }
+
     printf("\nin child process: pid %d, ppid %d\n", getpid(), getppid());
+ 
     return 0;
 }
 
