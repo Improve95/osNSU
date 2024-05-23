@@ -24,7 +24,7 @@ int main() {
     int opt = 1;
     int server_fd;
     int client_socket;
-    // int fork_pid;
+    int fork_pid;
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1) {
@@ -42,19 +42,21 @@ int main() {
 
     bind(server_fd, (struct sockaddr*)&srv_sockaddr, sizeof(srv_sockaddr));
 
-    // while (true) {
+    listen(server_fd, 1);
+
+    while (true) {
         client_socket = accept(server_fd, (struct sockaddr*)&srv_sockaddr, &srv_sock_len);
         if (client_socket == -1) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
 
-        /*fork_pid = fork();
+        fork_pid = fork();
         if (fork_pid == 0) {
             printf("here\n");
             break;
-        }*/
-    // }
+        }
+    }
 
 
     return EXIT_SUCCESS;

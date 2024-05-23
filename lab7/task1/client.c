@@ -19,6 +19,7 @@
 
 int main() {
     struct sockaddr_in clt_sockaddr;
+    socklen_t clt_sock_len = sizeof(clt_sockaddr);
     int client_fd;
     int status;
 
@@ -33,10 +34,10 @@ int main() {
         perror("inet_pton");
         exit(EXIT_FAILURE);
     }
-    clt_sockaddr.sin_addr.s_addr = htons(PORT);
+    clt_sockaddr.sin_port= htons(PORT);
     clt_sockaddr.sin_family = AF_INET;
 
-    status = connect(client_fd, (struct sockaddr_in*)&clt_sockaddr, sizeof(clt_sockaddr));
+    status = connect(client_fd, (struct sockaddr_in*)&clt_sockaddr, clt_sock_len);
     if (status == -1) {
         perror("connect");
         exit(EXIT_FAILURE);
