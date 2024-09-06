@@ -23,5 +23,7 @@ int main() {
 		return -1;
 	}
 
+    sleep(2);
+
 	return 0;
 }
