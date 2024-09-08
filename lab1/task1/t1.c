@@ -10,11 +10,11 @@ int global = 5;
 static int global_static = 10; 
 
 void *mythread(void *arg) {
-	int local = 15;
-	static int local_static = 20;
-	const int local_const = 25;
+	int local = 30;
+	static int local_static = 35;
+	const int local_const = 40;
 
-	printf("mythread [%d %d %d %ld]: Hello from mythread!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n", 
+	printf("mythread [%d %d %d %ld]: Hello from mythread!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n\n", 
 		getpid(), getppid(), gettid(), pthread_self(), &global, &global_static, &local, &local_static, &local_const);
 	return NULL;
 }
