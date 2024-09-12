@@ -7,6 +7,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <dirent.h> 
+#include <sys/stat.h>
+#include <unistd.h>
 
 void *mythread(void *args) {
 
@@ -16,10 +19,10 @@ void *mythread(void *args) {
 
     printf("mythread [%d %d %d]: goodbye from mythread!\n", getpid(), getppid(), gettid());
 
-    int *ret_value = malloc(sizeof(int));
+    char *ret_value = malloc(30 * sizeof(char));
     printf("mythread: %p\n", ret_value);
 
-    *ret_value = 42;
+    snprintf(ret_value, 30, "hello world from thread");
     return ret_value;
 }
 
@@ -35,12 +38,12 @@ int main() {
         exit(EXIT_FAILURE);
 	}
 
-    int *mythread_ret = NULL;
+    char *mythread_ret = NULL;
     pthread_join(tid, (void *) &mythread_ret);
     printf("main: %p\n", mythread_ret);
 
     printf("main [%d %d %d]: mythread is over\n", getpid(), getppid(), gettid());
-    printf("return value: %d\n", *mythread_ret);
+    printf("return value: %s\n", mythread_ret);
 
     free(mythread_ret);
 
