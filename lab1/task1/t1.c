@@ -30,13 +30,15 @@ int main() {
 	printf("main [%d %d %d]: Hello from main!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n\n", 
 		getpid(), getppid(), gettid(), &global, &global_static, &local, &local_static, &local_const);
 
-	for (int i = 0; i < 1; i++) {
+	// printf("%s", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	for (int i = 0; i < 5; i++) {
 		err = pthread_create(&tid[i], NULL, mythread, NULL);
 		if (err) {
 			printf("main: pthread_create() failed: %s\n", strerror(err));
 			return -1;
 		}
 	}
+	// printf("%s", "??????????????????????????????????????????");
 
 	sleep(1);
 
