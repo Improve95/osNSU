@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 int global = 5;
 
