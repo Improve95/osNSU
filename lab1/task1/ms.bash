@@ -1,9 +1,11 @@
-rm t1
+rm t.out
 clear
 
-# gcc t1.c -o t1 -lpthread -Werror -Wextra
-# gcc t11.c -o t1 -lpthread -Werror -Wextra
-# gcc t12.c -o t1 -lpthread -Werror -Wextra
-gcc t12d.c -o t1 -lpthread -Werror -Wextra
+# gcc t1.c -o t.out -lpthread -Werror -Wextra
+# gcc t11.c -o t.out -lpthread -Werror -Wextra
+# gcc t12.c -o t.out -lpthread -Werror -Wextra
+gcc t12d.c -o t.out -lpthread -Werror -Wextra
+# gcc t12e.c -o t.out -lpthread -Werror -Wextra
+# gcc t13.c -o t.out -lpthread -Werror -Wextra
 
-./t1
+./t.out
