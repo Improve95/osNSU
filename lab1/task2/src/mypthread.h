@@ -3,7 +3,7 @@
 
 #include "head.h"
 
-// Объявить тип функции
+// Объявить тип функции рутины
 
 typedef struct {
     int pid;
@@ -13,7 +13,7 @@ typedef struct {
 void *create_stack();
 
 void startup() {
-
+    
 }
 
 int mpthread_create();
