@@ -5,13 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <string.h>
 #include <errno.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <sys/mman.h>
-#include <dirent.h>
-#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #endif
