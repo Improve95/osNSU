@@ -3,11 +3,11 @@
 
 #include "head.h"
 
-typedef void *(*routine_func) (void *);
+typedef void *(*routine) (void *);
 
 typedef struct {
-    void *(*start_routine) (void *);
-    void *arg;
+    routine start_routine;
+    void *start_routine_args;
 } give_parameters_t;
 
 typedef struct {

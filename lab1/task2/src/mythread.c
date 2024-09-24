@@ -21,16 +21,18 @@ void *create_stack(int stack_size, int thread_number) {
     return stack;
 }
 
-int initial_function(void *arg) {
-    
+int initial_function(void *args) {
+    give_parameters_t *give_arg = (give_parameters_t *) args;
 
-    // void *ret_value = start_routine(arg);
+    routine start_routine = give_arg->start_routine;
+    void *start_routine_args = give_arg->start_routine_args;
+    void *ret_value = start_routine(give_arg);
     
     //сделать очистку памяти и всего всего всего
     return 0;
 }
 
-int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void *arg) {
+int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void *args) {
     int stack_size = 7 * 1024 * 1024;
     int err;
     
@@ -39,10 +41,10 @@ int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void
         return -1;
     }
 
-    give_parameters_t give_parameters;
-    give_parameters.start_routine = start_routine;
-    give_parameters.arg = arg;
-    err = clone(initial_function, stack, CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PIDFD, &give_parameters);
+    give_parameters_t give_arg;
+    give_arg.start_routine = (routine) start_routine;
+    give_arg.start_routine_args = args;
+    err = clone(initial_function, stack, CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PIDFD, &give_arg);
 
     if (err != 0) {
         perror("clone");

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(mypthread C)
+project(mythread C)
 
 set(SRC src/main.c src/mythread.c)
 add_executable(${PROJECT_NAME} ${SRC})
