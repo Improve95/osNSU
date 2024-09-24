@@ -1,6 +1,8 @@
 #include "head.h"
 #include "mythread.h"
 
+static const int STACK_SIZE = 7 * 1024 * 1024;
+
 void *create_stack(int stack_size, int thread_number) {
     void *stack;
 
@@ -21,30 +23,34 @@ void *create_stack(int stack_size, int thread_number) {
     return stack;
 }
 
-int initial_function(void *args) {
-    give_parameters_t *give_arg = (give_parameters_t *) args;
+int initial_function(void *arg) {
+    mythread_t *mythread = (mythread_t *) arg;
 
-    routine start_routine = give_arg->start_routine;
-    void *start_routine_args = give_arg->start_routine_args;
-    void *ret_value = start_routine(give_arg);
-    
-    //сделать очистку памяти и всего всего всего
+    start_routine_t start_routine = mythread->start_routine;
+    void *start_routine_arg = mythread->start_routine_arg;
+
+    void *ret_value = start_routine(start_routine_arg);
+
+    //wait
+    //joined
+
+    //сделать завершение работы потока
     return 0;
 }
 
-int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void *args) {
-    int stack_size = 7 * 1024 * 1024;
+int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void *arg) {
+    static int thread_number = 0;
     int err;
     
-    void *stack = create_stack(stack_size, 1);
+    void *stack = create_stack(STACK_SIZE, ++thread_number);
     if (stack == NULL) {
         return -1;
     }
 
-    give_parameters_t give_arg;
-    give_arg.start_routine = (routine) start_routine;
-    give_arg.start_routine_args = args;
-    err = clone(initial_function, stack, CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PIDFD, &give_arg);
+    newthread->start_routine = (start_routine_t) start_routine;
+    newthread->start_routine_arg = arg;
+
+    err = clone(initial_function, stack, CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_PIDFD, (void *) newthread);
 
     if (err != 0) {
         perror("clone");
