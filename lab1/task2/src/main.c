@@ -6,7 +6,7 @@ void *thread_function(void *args) {
 }
 
 int main() {
-    mythread_t tid;
+    __mythread tid;
     int err;
     
     err = mythread_create(&tid, thread_function, NULL);

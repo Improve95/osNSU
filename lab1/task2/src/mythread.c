@@ -1,7 +1,8 @@
 #include "head.h"
 #include "mythread.h"
 
-static const int STACK_SIZE = 7 * 1024 * 1024;
+static const int PAGE_SIZE = 4096;
+static const int STACK_SIZE = 9 * PAGE_SIZE;
 
 void *create_stack(int stack_size) {
     void *stack;
@@ -26,7 +27,7 @@ void *create_stack(int stack_size) {
 }
 
 int initial_function(void *arg) {
-    mythread_t *mythread = (mythread_t *) arg;
+    __mythread *mythread = (__mythread *) arg;
 
     start_routine_t start_routine = mythread->start_routine;
     void *start_routine_arg = mythread->start_routine_arg;
@@ -34,42 +35,33 @@ int initial_function(void *arg) {
     void *ret_value = start_routine(start_routine_arg);
 
     if (!mythread->detached) {
-        while (mythread->joined) {
+        while (!mythread->joined) {
             usleep(500000);
         }
     }
 
     mythread->ret_value = ret_value;
-    mythread->exited = 1;
+    mythread->finished = 1;
 
-    // mythread.
+    // munmap(mythread->stack, STACK_SIZE);
 
     return 0;
 }
 
-int mythread_join(mythread_t *th, void **ret_value) {
+int mythread_join(__mythread *th, void **ret_value) {
     th->joined = 1;
-    while (!th->exited) {
+    while (!th->finished) {
         usleep(500000);
     }
     ret_value = &th->ret_value;
 }
 
-int mythread_equals(mythread_t *th1, mythread_t *th2) {
-    if (th1->mythread_id == th2->mythread_id &&
-        th1->start_routine == th2->start_routine &&
-        &(th1->start_routine_arg) == &(th2->start_routine_arg) &&
-        th1->ret_value == th2->ret_value &&
-        th1->joined == th2->joined &&
-        th1->exited == th2->exited &&
-        th1->detached == th2->detached) {
-        return 1;
-    }
-    return 0;
+int mythread_equals(mythread_t thread1, mythread_t thread2) {
+    return thread1 == thread2;
 }
 
 int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void *arg) {
-    static int thread_number = 0;
+    static mythread_t thread_number = 0;
     int err;
     
     void *stack = create_stack(STACK_SIZE);
@@ -77,19 +69,23 @@ int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void
         return -1;
     }
 
-    mprotect(stack, STACK_SIZE, PROT_READ | PROT_WRITE);
+    mprotect(stack + PAGE_SIZE, STACK_SIZE - PAGE_SIZE, PROT_READ | PROT_WRITE);
 
-    newthread->mythread_id = ++thread_number;
-    newthread->start_routine = (start_routine_t) start_routine;
-    newthread->start_routine_arg = arg;
-    newthread->ret_value = NULL;
-    newthread->joined = 0;
-    newthread->exited = 0;
-    newthread->detached = 0;
-    newthread->stack = stack;
+    *newthread = thread_number;
+
+    __mythread *thread_struct = (__mythread *)(stack + STACK_SIZE - sizeof(__mythread));
+    thread_struct->mythread_id = thread_number;
+    thread_struct->start_routine = (start_routine_t) start_routine;
+    thread_struct->start_routine_arg = arg;
+    thread_struct->ret_value = NULL;
+    thread_struct->joined = 0;
+    thread_struct->finished = 0;
+    thread_struct->detached = 0;
+    thread_struct->stack = stack;
+
+    thread_number++;
 
     err = clone(initial_function, stack, CLONE_VM | CLONE_FILES | CLONE_SIGHAND | CLONE_THREAD | SIGCHLD, (void *) newthread);
-
     if (err != 0) {
         perror("clone");
         return err;
@@ -97,4 +93,3 @@ int mythread_create(mythread_t *newthread, void *(*start_routine) (void *), void
 
     return err;
 }
-
