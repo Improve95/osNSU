@@ -17,7 +17,7 @@ typedef struct {
     volatile int        finished;
     volatile int        detached;
 
-    void *              stack;
+    // void *              stack;
 } __mythread;
 
 int mythread_create(__mythread *newthread, void *(*start_routine) (void *), void *arg);
