@@ -27,12 +27,12 @@ void *create_stack(int stack_size) {
 }
 
 int initial_function(void *arg) {
-    __mythread *mythread = (__mythread *) arg;
+    __mythread mythread = *(__mythread *) arg;
 
-    start_routine_t start_routine = mythread->start_routine;
-    void *start_routine_arg = mythread->start_routine_arg;
+    start_routine_t start_routine = mythread.start_routine;
+    // void *start_routine_arg = mythread->start_routine_arg;
 
-    void *ret_value = start_routine(start_routine_arg);
+    void *ret_value = start_routine(NULL);
 
     /* if (!mythread->detached) {
         while (!mythread->joined) {
@@ -41,7 +41,7 @@ int initial_function(void *arg) {
     } */
 
     // mythread->ret_value = ret_value;
-    mythread->finished = 1;
+    // mythread->finished = 1;
 
     // munmap(mythread->stack, STACK_SIZE);
 
