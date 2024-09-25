@@ -24,6 +24,6 @@ int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg
 
 int mythread_join(__mythread *th, void **ret_value);
 
-// int mythread_equals(mythread_t thread1, mythread_t thread2);
+int mythread_equals(__mythread *thread1, __mythread *thread2);
 
 #endif

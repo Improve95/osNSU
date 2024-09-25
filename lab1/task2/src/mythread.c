@@ -7,7 +7,7 @@ static const int STACK_SIZE = 9 * PAGE_SIZE;
 void *create_stack(int stack_size) {
     void *stack;
 
-    int stack_fd = open("./stack", O_RDWR | O_CREAT, 0660);
+    int stack_fd = open("stack", O_RDWR | O_CREAT, 0660);
     if (stack_fd == -1) {
         perror("open stack");
         return NULL;
@@ -32,16 +32,16 @@ int initial_function(void *arg) {
     start_routine_t start_routine = mythread->start_routine;
     void *start_routine_arg = mythread->start_routine_arg;
 
-    void *ret_value = start_routine(NULL);
+    void *ret_value = start_routine(start_routine_arg);
 
     mythread->ret_value = ret_value;
     mythread->finished = 1;
 
-    /* if (!mythread->detached) {
+    /*if (!mythread->detached) {
         while (!mythread->joined) {
             usleep(500000);
         }
-    } */
+    }*/
 
     // munmap(mythread->stack, STACK_SIZE);
 
@@ -53,11 +53,21 @@ int mythread_join(__mythread *th, void **ret_value) {
     while (!th->finished) {
         usleep(500000);
     }
-    ret_value = &th->ret_value;
+    *ret_value = &th->ret_value;
 }
 
-int mythread_equals(mythread_t thread1, mythread_t thread2) {
-    return thread1 == thread2;
+int mythread_equals(__mythread *thread1, __mythread *thread2) {
+    if (thread1->mythread_id == thread2->mythread_id &&
+        thread1->start_routine == thread2->start_routine &&
+        thread1->start_routine_arg == thread2->start_routine_arg &&
+        thread1->ret_value == thread2->ret_value &&
+        thread1->joined == thread2->joined &&
+        thread1->finished == thread2->finished &&
+        thread1->detached == thread1->detached) {
+
+        return 1;
+    }
+    return 0;
 }
 
 int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg) {
