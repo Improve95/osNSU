@@ -1,7 +1,7 @@
 #include "head.h"
 #include "mythread.h"
 
-void *thread_function(void *args) {
+void *thread_function(void *arg) {
     printf("Hello from mythread\n");
 }
 
