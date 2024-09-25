@@ -20,7 +20,7 @@ typedef struct {
     // void *              stack;
 } __mythread;
 
-int mythread_create(__mythread *newthread, void *(*start_routine) (void *), void *arg);
+int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg);
 
 int mythread_join(__mythread *th, void **ret_value);
 

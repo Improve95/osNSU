@@ -27,21 +27,21 @@ void *create_stack(int stack_size) {
 }
 
 int initial_function(void *arg) {
-    __mythread mythread = *(__mythread *) arg;
+    __mythread *mythread = (__mythread *) arg;
 
-    start_routine_t start_routine = mythread.start_routine;
-    // void *start_routine_arg = mythread->start_routine_arg;
+    start_routine_t start_routine = mythread->start_routine;
+    void *start_routine_arg = mythread->start_routine_arg;
 
     void *ret_value = start_routine(NULL);
+
+    mythread->ret_value = ret_value;
+    mythread->finished = 1;
 
     /* if (!mythread->detached) {
         while (!mythread->joined) {
             usleep(500000);
         }
     } */
-
-    // mythread->ret_value = ret_value;
-    // mythread->finished = 1;
 
     // munmap(mythread->stack, STACK_SIZE);
 
@@ -56,15 +56,16 @@ int mythread_join(__mythread *th, void **ret_value) {
     ret_value = &th->ret_value;
 }
 
-/* int mythread_equals(mythread_t thread1, mythread_t thread2) {
+int mythread_equals(mythread_t thread1, mythread_t thread2) {
     return thread1 == thread2;
-} */
+}
 
-int mythread_create(__mythread *newthread, void *(*start_routine) (void *), void *arg) {
+int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg) {
     static mythread_t thread_number = 0;
-    int err;
+    void *stack;
+    int child_pid;
     
-    void *stack = create_stack(STACK_SIZE);
+    stack = create_stack(STACK_SIZE);
     if (stack == NULL) {
         return -1;
     }
@@ -79,17 +80,18 @@ int mythread_create(__mythread *newthread, void *(*start_routine) (void *), void
     mythread->joined = 0;
     mythread->finished = 0;
     mythread->detached = 0;
-    mythread->stack = stack;
+    // mythread->stack = stack;
 
     thread_number++;
 
-    void *child_stack = (void *) mythread;
-
-    err = clone(initial_function, mythread, CLONE_VM | CLONE_FILES | CLONE_SIGHAND | CLONE_THREAD | SIGCHLD, (void *) newthread);
-    if (err != 0) {
+    stack = mythread;
+    child_pid = clone(initial_function, stack, CLONE_VM | CLONE_FILES | CLONE_SIGHAND | CLONE_THREAD | SIGCHLD, (void *) mythread);
+    if (child_pid == -1) {
         perror("clone");
-        return err;
+        return -1;
     }
 
-    return err;
+    *tid = mythread;
+
+    return 0;
 }
