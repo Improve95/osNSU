@@ -54,6 +54,7 @@ int mythread_join(__mythread *th, void **ret_value) {
         usleep(500000);
     }
     *ret_value = th->ret_value;
+    return 0;
 }
 
 int mythread_equals(__mythread *thread1, __mythread *thread2) {
@@ -74,13 +75,18 @@ int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg
     static mythread_t thread_number = 0;
     void *stack;
     int child_pid;
+    int err = 0;
     
     stack = create_stack(STACK_SIZE);
     if (stack == NULL) {
         return -1;
     }
 
-    mprotect(stack + PAGE_SIZE, STACK_SIZE - PAGE_SIZE, PROT_READ | PROT_WRITE);
+    err = mprotect(stack + PAGE_SIZE, STACK_SIZE - PAGE_SIZE, PROT_READ | PROT_WRITE);
+    if (err == -1) {
+        munmap(stack, STACK_SIZE);
+        return -2;
+    }
 
     __mythread *mythread = (__mythread *)(stack + STACK_SIZE - sizeof(__mythread));
     mythread->mythread_id = thread_number;
@@ -98,7 +104,8 @@ int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg
     child_pid = clone(initial_function, stack, CLONE_VM | CLONE_FILES | CLONE_SIGHAND | CLONE_THREAD | SIGCHLD, (void *) mythread);
     if (child_pid == -1) {
         perror("clone");
-        return -1;
+        munmap(stack, STACK_SIZE);
+        return -3;
     }
 
     *tid = mythread;

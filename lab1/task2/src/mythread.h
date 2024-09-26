@@ -20,6 +20,12 @@ typedef struct {
     // void *              stack;
 } __mythread;
 
+/* creates a unique and inimitable, hand-made stream, starting with execution of START-ROUTINE
+   getting passed ARG.
+   ret-value:    0 - ok;
+                -1 - stack allocate error
+                -2 - mprotect allocate error
+                -3 - create thread error */
 int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg);
 
 int mythread_join(__mythread *th, void **ret_value);
