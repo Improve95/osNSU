@@ -79,12 +79,14 @@ int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg
     
     stack = create_stack(STACK_SIZE);
     if (stack == NULL) {
+        errno = -1;
         return -1;
     }
 
     err = mprotect(stack + PAGE_SIZE, STACK_SIZE - PAGE_SIZE, PROT_READ | PROT_WRITE);
     if (err == -1) {
         munmap(stack, STACK_SIZE);
+        errno = -2;
         return -2;
     }
 
@@ -105,6 +107,7 @@ int mythread_create(__mythread **tid, void *(*start_routine) (void *), void *arg
     if (child_pid == -1) {
         perror("clone");
         munmap(stack, STACK_SIZE);
+        errno = -3;
         return -3;
     }
 
