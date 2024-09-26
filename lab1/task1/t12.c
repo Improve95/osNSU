@@ -39,7 +39,7 @@ int main() {
 	}
 
     char *mythread_ret = NULL;
-    pthread_join(tid, (void *) &mythread_ret);
+    pthread_join(tid, (void *) *mythread_ret);
     printf("main: %p\n", mythread_ret);
 
     printf("main [%d %d %d]: mythread is over\n", getpid(), getppid(), gettid());

@@ -3,7 +3,11 @@
 
 void *mythread_function(void *arg) {
     printf("Hello from mythread\n");
-    return "ret value from mythread";
+
+    int *number = malloc(sizeof(int));
+    *number = 25;
+    
+    return number;
 }
 
 int main() {
@@ -16,9 +20,10 @@ int main() {
         return err;
     }
 
-    char *ret_value = malloc(30);
+    int *ret_value = NULL;
     mythread_join(tid, (void *) &ret_value);
-    printf("ret value from thread: %s\n", ret_value);
+
+    printf("ret value from thread: %d\n", *ret_value);
 
     free(ret_value);
 

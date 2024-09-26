@@ -53,7 +53,7 @@ int mythread_join(__mythread *th, void **ret_value) {
     while (!th->finished) {
         usleep(500000);
     }
-    *ret_value = &th->ret_value;
+    *ret_value = th->ret_value;
 }
 
 int mythread_equals(__mythread *thread1, __mythread *thread2) {
