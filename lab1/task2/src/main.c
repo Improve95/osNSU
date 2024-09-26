@@ -1,5 +1,6 @@
-#include "head.h"
-#include "mythread.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "mythread/mythread.h"
 
 void *mythread_function(void *arg) {
     printf("Hello from mythread\n");
