@@ -42,6 +42,7 @@ void *sigint_thread_v2(void *arg) {
 }
 
 void *sigint_thread(void *arg) {
+    sleep(2);
     struct sigaction sa;
     sa.sa_handler = sigint_handler;
 
@@ -98,24 +99,26 @@ int main() {
     pthread_create(&tid1, NULL, block_thread, NULL);
     printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid1);
 
-    /* pthread_create(&tid2, NULL, sigint_thread, NULL);
+    pthread_create(&tid2, NULL, sigint_thread, NULL);
     printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid2);
 
     pthread_create(&tid3, NULL, sigint_thread_v2, NULL);
-    printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid3); */
+    printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid3);
 
-    pthread_create(&tid4, NULL, wait_sigquit_thread, NULL);
+    /* pthread_create(&tid4, NULL, wait_sigquit_thread, NULL);
     printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid4);
 
     pthread_create(&tid5, NULL, wait_sigquit_thread_v2, NULL);
-    printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid5);
+    printf("main [%d %d %d]: create thread %ld\n", getpid(), getppid(), gettid(), tid5); */
 
+    /* здесь в /proc/pid/status будет висеть три заблокированных сигнала */
     pthread_kill(tid1, SIGINT);
     pthread_kill(tid1, SIGSEGV);
     pthread_kill(tid1, SIGQUIT);
 
     /* здесь переписывается структура в которой хранится функция обрабатывающая сигнал
-        и вызовется та, которая записана последней */
+        и вызовется та, которая записана последней 
+        (там приколы с act и old act, по исходникам посмотреть надо)*/
     sleep(3);
     pthread_kill(tid2, SIGINT);
     pthread_kill(tid3, SIGINT);
@@ -127,9 +130,9 @@ int main() {
     pthread_kill(tid5, SIGQUIT); */
 
     pthread_join(tid1, NULL);
-    // pthread_join(tid2, NULL);
-    // pthread_join(tid3, NULL); 
-    pthread_join(tid4, NULL);
+    pthread_join(tid2, NULL);
+    pthread_join(tid3, NULL); 
+    // pthread_join(tid4, NULL);
     // pthread_join(tid5, NULL); 
 
     sleep(1);
