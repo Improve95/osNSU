@@ -49,12 +49,14 @@ int initial_function(void *arg) {
 }
 
 int mythread_join(__mythread *th, void **ret_value) {
-    th->joined = 1;
-    while (!th->finished) {
-        usleep(500000);
+    if (th->joined == 0) {
+        th->joined = 1;
+        while (!th->finished) {
+            usleep(500000);
+        }
+        *ret_value = th->ret_value;
+        return 0;
     }
-    *ret_value = th->ret_value;
-    return 0;
 }
 
 int mythread_equals(__mythread *thread1, __mythread *thread2) {
