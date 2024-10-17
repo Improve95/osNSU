@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <ucontext.h>
+#include <string.h>
 
 #define NAME_SIZE 64
 #define STACK_SIZE 4096
@@ -24,48 +25,42 @@ typedef struct {
 
 uthread_t *uthreads[MAX_THREAD];
 
-int uthread_count = 0;
-int uthread_cur = 0;
+static volatile int uthread_count = 0;
+static volatile int current_thread = 0;
 
 void *create_stack(int file_size, char *file_name) {
-    void *stack;
+    int stack_fd = open(file_name, O_RDWR | O_CREAT, 0660);
+    ftruncate(stack_fd, 0);
+    ftruncate(stack_fd, file_size);
 
-    if (file_name) {
-        int stack_fd = open(file_name, O_RDWR | O_CREAT, 0660);
-        ftruncate(stack_fd, 0);
-        ftruncate(stack_fd, file_size);
-
-        stack = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_STACK, stack, 0);
-        close(stack_fd);
-    } else {
-        stack = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
-    }
-
+    void *stack = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_STACK, stack_fd, 0);
+    close(stack_fd);
+    
     return stack;
 }
 
-void shedule(void) {
+void schedule() {
+
     int err;
     ucontext_t *cur_ctx, *next_ctx;
 
-    cur_ctx = &(uthreads[uthread_cur]->uctx);
+    cur_ctx = &(uthreads[current_thread]->uctx);
 
-    err = swap(cur_ctx, next_ctx);
+    current_thread = (current_thread + 1) % uthread_count;
+    next_ctx = &(uthreads[current_thread]->uctx);
+
+    err = swapcontext(cur_ctx, next_ctx);
     if (err == -1) {
         perror("swap context");
         exit(1);
     }
 }
 
-void start_thread(void) {
-    int i;
-    ucontext_t *ctx;
-
-    for (i = 1; i < uthread_count; i++) {
-        ctx = &uthreads[i]->uctx;
+void start_thread() {
+    for (int i = 0; i < uthread_count; i++) {
+        ucontext_t *ctx = &uthreads[i]->uctx;
         char *stack_from = ctx->uc_stack.ss_sp;
         char *stack_to = ctx->uc_stack.ss_sp + ctx->uc_stack.ss_size;
-
         if (stack_from <= (char*)&i && (char*)&i <= stack_to) {
             printf("start thread: i=%d name: %s thread_func: %p, arg: %p", 
                 i, uthreads[i]->name, uthreads[i]->thread_func, uthreads[i]->arg);
@@ -112,7 +107,7 @@ void mythread1(void *arg) {
     for (i = 0; i < 10; i++) {
         printf("mythread1, arg %s %p schedule()\n", myarg, &i);
         sleep(1);
-        shedule();
+        schedule();
     }
 
     printf("mythread1: finished\n");
@@ -127,14 +122,14 @@ void mythread2(void *arg) {
     for (i = 0; i < 10; i++) {
         printf("mythread2, arg %s %p schedule()\n", myarg, &i);
         sleep(1);
-        shedule();
+        schedule();
     }
 
     printf("mythread2: finished\n");
 }
 
 int main() {
-    uthread_t *uthreads[3];
+    uthread_t *ut[3];
     char *arg[] = {"arg000", "arg111", "arg222"};
 
     uthread_t main_thread;
@@ -143,9 +138,16 @@ int main() {
 
     printf("main: started: %d %d %d\n", getpid(), getppid(), gettid());
 
-    uthread_create(&uthreads[0], "user-thread-0", mythread1, (void *)arg[0]);
-    uthread_create(&uthreads[1], "user-thread-1", mythread2, (void *)arg[1]);
-    uthread_create(&uthreads[2], "user-thread-2", mythread1, (void *)arg[2]);
+    uthread_create(&ut[0], "user-thread-0", mythread1, (void *)arg[0]);
+    uthread_create(&ut[1], "user-thread-1", mythread2, (void *)arg[1]);
+    uthread_create(&ut[2], "user-thread-2", mythread1, (void *)arg[2]);
+
+    while (1) {
+        printf("main thread\n");
+        schedule();
+    }
+
+    printf("main: finished: %d %d %d\n", getpid(), getppid(), gettid());
 
     return 0;
 }
