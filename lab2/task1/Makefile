@@ -8,5 +8,8 @@ cq:
 cqe: cq
 	gcc queue-example.c -L. -lqueue -o t.out -Wall -Werror -Wextra
 
+cqt: cq
+	gcc queue-threads.c -L. -lqueue -o t.out -Wall -Werror -Wextra
+
 r:
 	./t.out
