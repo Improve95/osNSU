@@ -92,13 +92,10 @@ int queue_add(queue_t *q, int val) {
 int queue_get(queue_t *q, int *val) {
 	q->get_attempts++;
 
-	if (q->count <=  0) {
-		return 0;
-	}
+	assert(q->count >= 0);
 
-	/* assert(q->count >= 0);
 	if (q->count == 0)
-		return 0; */
+		return 0;
 
 	qnode_t *tmp = q->first;
 

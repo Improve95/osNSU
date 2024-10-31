@@ -46,10 +46,6 @@ void *reader(void *arg) {
 			continue;
 		}
 
-		/* это происходит потому что поток чтения "может переключиться" на 
-		поток записи, и в этот момент, запись увидит, что first == last,
-		и подменит first на ласт на newQNode, когда снова запустится поток чтения,
-		он увидит не то значение, которое брал перед сменой контекста*/
 		if (expected != val) {
 			printf(RED"ERROR: get value is %d but expected - %d" NOCOLOR "\n", val, expected);
 		}
@@ -64,7 +60,7 @@ void *writer(void *arg) {
 	queue_t *q = (queue_t *)arg;
 	printf("writer [%d %d %d]\n", getpid(), getppid(), gettid());
 
-	set_cpu(2);
+	set_cpu(1);
 
 	while (1) {
 		int ok = queue_add(q, i);
@@ -84,10 +80,7 @@ int main() {
 
 	printf("main [%d %d %d]\n", getpid(), getppid(), gettid());
 
-	/* при изменении размера очереди поток записи успевает записать за время
-	выделенное планировщиком заполнить всю очередь, то же самое с потоком чтения,
-	он успевает прочитать всю очередь */
-	q = queue_init(1000000);
+	q = queue_init(10000);
 
 	err = pthread_create(&tid, NULL, reader, q);
 	if (err) {
