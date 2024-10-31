@@ -1,8 +1,8 @@
 rm t.out
+rm ./build/syncronized
 clear
 
 # cmake -S . -B build
 
-rm ./build/syncronized
 cmake --build ./build
-./build/syncronized
+time ./build/syncronized
