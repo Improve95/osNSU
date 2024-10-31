@@ -34,8 +34,20 @@ queue_t* queue_init(int max_count) {
 	q->add_attempts = q->get_attempts = 0;
 	q->add_count = q->get_count = 0;
 
-	sem_init(&q->empty, 0, max_count);
-	sem_init(&q->full, 0, 0);
+	if (pthread_mutex_init(&q->lock, NULL) != 0) {
+		perror("pthread_mutex_init");
+		abort();
+	}
+
+	if (pthread_cond_init(&q->not_empty, NULL) != 0) {
+		perrot("pthread_cond_init");
+		abort();
+	}
+
+	if (pthread_cond_init(&q->not_full, NULL) != 0) {
+		perrot("pthread_cond_init");
+		abort();
+	}
 
 	err = pthread_create(&q->qmonitor_tid, NULL, qmonitor, q);
 	if (err) {
@@ -52,10 +64,13 @@ void queue_destroy(queue_t **q) {
 		return;
 	}
 
+	pthread_mutex_lock(&(*q)->lock);
+
 	printf("\n== destroy ==\n");
 
-	sem_destroy(&(*q)->empty);
-	sem_destroy(&(*q)->full);
+	pthread_cond_broadcast(&(*q)->not_empty);
+	pthread_cond_broadcast(&(*q)->not_full);
+
 
 	pthread_cancel((*q)->qmonitor_tid);
 	qnode_t *current_node = (*q)->first;
@@ -66,24 +81,34 @@ void queue_destroy(queue_t **q) {
 	}
 	pthread_join((*q)->qmonitor_tid, NULL);	
 	
+	pthread_mutex_t lock = (*q)->lock;
+	pthread_mutex_destroy(&(*q)->lock);
+
+	pthread_mutex_destroy(&lock);
+	pthread_cond_destroy(&(*q)->not_empty);
+	pthread_cond_destroy(&(*q)->not_full);
+
 	free((*q));
 	*q = NULL;
+
+	pthread_mutex_unlock(&(*q)->lock);
 }
 
 int queue_add(queue_t *q, int val) {
 	q->add_attempts++;
 
+	pthread_mutex_lock(&q->lock);
+
 	assert(q->count <= q->max_count);
 
-	sem_wait(&q->empty);
-
 	if (q->count == q->max_count) {
-		sem_post(&q->full);
-		return 0;
+		pthread_cond_wait(&q->not_full, &q->lock);
+		// return 0;
 	}
 
 	qnode_t *newQNode = malloc(sizeof(qnode_t));
 	if (!newQNode) {
+		pthread_mutex_unlock(&q->lock);
 		printf("Cannot allocate memory for newQNode node\n");
 		abort();
 	}
@@ -101,7 +126,9 @@ int queue_add(queue_t *q, int val) {
 	q->count++;
 	q->add_count++;
 
-	sem_post(&q->full);
+	pthread_cond_signal(&q->not_empty);
+
+	pthread_mutex_unlock(&q->lock);
 
 	return 1;
 }
@@ -111,10 +138,15 @@ int queue_get(queue_t *q, int *val) {
 
 	assert(q->count >= 0);
 
-	sem_wait(&q->full);
+	pthread_mutex_lock(&q->lock);
 
-	if (q->count == 0) {
+	/* if (q->count == 0) {
+		pthread_mutex_unlock(&q->lock);
 		return 0;
+	} */
+
+	while (q->count == 0) {
+		pthread_cond_wait(&q->not_empty, &q->lock);
 	}
 
 	qnode_t *tmp = q->first;
@@ -126,7 +158,9 @@ int queue_get(queue_t *q, int *val) {
 	q->count--;
 	q->get_count++;
 
-	sem_post(&q->empty);
+	pthread_cond_signal(&q->not_full);
+
+	pthread_mutex_unlock(&q->lock);
 
 	return 1;
 }

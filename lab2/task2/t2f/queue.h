@@ -21,8 +21,8 @@ typedef struct _Queue {
 
 	pthread_t qmonitor_tid;
 	pthread_mutex_t lock;
-	sem_t empty;
-	sem_t full;
+	pthread_cond_t not_empty;
+	pthread_cond_t not_full;
 
 	int count;
 	int max_count;
