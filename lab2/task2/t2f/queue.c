@@ -40,12 +40,12 @@ queue_t* queue_init(int max_count) {
 	}
 
 	if (pthread_cond_init(&q->not_empty, NULL) != 0) {
-		perrot("pthread_cond_init");
+		perror("pthread_cond_init");
 		abort();
 	}
 
 	if (pthread_cond_init(&q->not_full, NULL) != 0) {
-		perrot("pthread_cond_init");
+		perror("pthread_cond_init");
 		abort();
 	}
 
@@ -103,7 +103,7 @@ int queue_add(queue_t *q, int val) {
 
 	if (q->count == q->max_count) {
 		pthread_cond_wait(&q->not_full, &q->lock);
-		// return 0;
+		// return 0; 
 	}
 
 	qnode_t *newQNode = malloc(sizeof(qnode_t));
@@ -139,11 +139,6 @@ int queue_get(queue_t *q, int *val) {
 	assert(q->count >= 0);
 
 	pthread_mutex_lock(&q->lock);
-
-	/* if (q->count == 0) {
-		pthread_mutex_unlock(&q->lock);
-		return 0;
-	} */
 
 	while (q->count == 0) {
 		pthread_cond_wait(&q->not_empty, &q->lock);
