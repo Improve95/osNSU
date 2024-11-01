@@ -46,6 +46,8 @@ void schedule() {
 
     cur_ctx = &(uthreads[current_thread]->uctx);
 
+    printf("shedule\n");
+
     current_thread = (current_thread + 1) % uthread_count;
     next_ctx = &(uthreads[current_thread]->uctx);
 
@@ -57,7 +59,9 @@ void schedule() {
 }
 
 void start_thread() {
-    for (int i = 0; i < uthread_count; i++) {
+    int i;
+    printf("start_thread\n");
+    for (i = 0; i < uthread_count; i++) {
         ucontext_t *ctx = &uthreads[i]->uctx;
         char *stack_from = ctx->uc_stack.ss_sp;
         char *stack_to = ctx->uc_stack.ss_sp + ctx->uc_stack.ss_size;
