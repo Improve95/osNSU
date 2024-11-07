@@ -34,7 +34,6 @@ void *start_routine6(void *arg) {
 
 }
 
-
 Node* generate_new_node() {
     int string_size = rand() % MAX_VALUE_SIZE;
     Node *node = malloc(sizeof(Node));
@@ -70,22 +69,40 @@ int main() {
     }
 
     err = pthread_create(&tid1, NULL, start_routine1, linked_list);
-    if (err) perror("pthread_create tid1");
+    if (err) {
+        perror("pthread_create tid1");
+        return -1;
+    }
 
     err = pthread_create(&tid2, NULL, start_routine2, linked_list);
-    if (err) perror("pthread_create tid2");
+    if (err) {
+        perror("pthread_create tid2");
+        return -1;
+    }
 
     err = pthread_create(&tid3, NULL, start_routine3, linked_list);
-    if (err) perror("pthread_create tid3");
+    if (err) {
+        perror("pthread_create tid3");
+        return -1;
+    }
 
     err = pthread_create(&tid4, NULL, start_routine4, linked_list);
-    if (err) perror("pthread_create tid4");
+    if (err) {
+        perror("pthread_create tid4");
+        return -1;
+    }
 
     err = pthread_create(&tid5, NULL, start_routine5, linked_list);
-    if (err) perror("pthread_create tid5");
+    if (err) {
+        perror("pthread_create tid5");
+        return -1;
+    }
     
     err = pthread_create(&tid6, NULL, start_routine6, linked_list);
-    if (err) perror("pthread_create tid6");
+    if (err) {
+        perror("pthread_create tid6");
+        return -1;
+    }
 
     pthread_join(tid1, NULL);
     pthread_join(tid2, NULL);
