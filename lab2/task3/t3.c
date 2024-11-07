@@ -18,7 +18,8 @@ void *start_routine1(void *arg) {
         printf("asc: %d/%d, desc: %d/%d, eq: %d/%d, swap: %d/%d\n", 
                 asc_count, asc_iter, 
                 desc_count, desc_iter,
-                eq_count, eq_iter, swap_count, swap_iter);
+                eq_count, eq_iter, 
+                swap_count, swap_iter);
     }
 }
 
@@ -28,26 +29,26 @@ void *start_routine2(void *arg) {
     while (1) {
 		pthread_testcancel();
 
-        Node *prev = linked_list;
-        Node *cur = NULL;
+        Node *prev_node = linked_list;
+        Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev->lock);
-        while (prev->next != NULL) {
-            cur = prev->next;
+        pthread_mutex_lock(&prev_node->lock);
+        while (prev_node->next != NULL) {
+            cur_node = prev_node->next;
 
-            long prev_len = strlen(prev->value);
-            long cur_len = strlen(cur->value);
+            long prev_len = strlen(prev_node->value);
+            long cur_len = strlen(cur_node->value);
             if (prev_len < cur_len) {
                 asc_count += 1;
             }
 
-            pthread_mutex_unlock(&prev->lock);
-            pthread_mutex_lock(&cur->lock);
+            pthread_mutex_unlock(&prev_node->lock);
+            pthread_mutex_lock(&cur_node->lock);
 
-            prev = cur;
+            prev_node = cur_node;
         }
         asc_iter += 1;
-        pthread_mutex_unlock(&cur->lock);
+        pthread_mutex_unlock(&cur_node->lock);
     }
 }
 
@@ -57,26 +58,26 @@ void *start_routine3(void *arg) {
     while (1) {
 		pthread_testcancel();
 
-        Node *prev = linked_list;
-        Node *cur = NULL;
+        Node *prev_node = linked_list;
+        Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev->lock);
-        while (prev->next != NULL) {
-            cur = prev->next;
+        pthread_mutex_lock(&prev_node->lock);
+        while (prev_node->next != NULL) {
+            cur_node = prev_node->next;
 
-            long prev_len = strlen(prev->value);
-            long cur_len = strlen(cur->value);
+            long prev_len = strlen(prev_node->value);
+            long cur_len = strlen(cur_node->value);
             if (prev_len > cur_len) {
                 desc_count += 1;
             }
 
-            pthread_mutex_unlock(&prev->lock);
-            pthread_mutex_lock(&cur->lock);
+            pthread_mutex_unlock(&prev_node->lock);
+            pthread_mutex_lock(&cur_node->lock);
 
-            prev = cur;
+            prev_node = cur_node;
         }
         desc_iter += 1;
-        pthread_mutex_unlock(&cur->lock);
+        pthread_mutex_unlock(&cur_node->lock);
     }
 }
 
@@ -86,39 +87,39 @@ void *start_routine4(void *arg) {
     while (1) {
 		pthread_testcancel();
 
-        Node *prev = linked_list;
-        Node *cur = NULL;
+        Node *prev_node = linked_list;
+        Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev->lock);
-        while (prev->next != NULL) {
-            cur = prev->next;
+        pthread_mutex_lock(&prev_node->lock);
+        while (prev_node->next != NULL) {
+            cur_node = prev_node->next;
 
-            long prev_len = strlen(prev->value);
-            long cur_len = strlen(cur->value);
+            long prev_len = strlen(prev_node->value);
+            long cur_len = strlen(cur_node->value);
             if (prev_len == cur_len) {
                 eq_count += 1;
             }
 
-            pthread_mutex_unlock(&prev->lock);
-            pthread_mutex_lock(&cur->lock);
+            pthread_mutex_unlock(&prev_node->lock);
+            pthread_mutex_lock(&cur_node->lock);
 
-            prev = cur;
+            prev_node = cur_node;
         }
         eq_iter += 1;
-        pthread_mutex_unlock(&cur->lock);
+        pthread_mutex_unlock(&cur_node->lock);
     }
 }
 
 Node *find_by_index(Node* linked_list, int index) {
-    Node *prev = linked_list;
-    Node *cur = linked_list;
+    Node *prev_node = linked_list;
+    Node *cur_node = linked_list;
 
-    for (int i = 0; i < index && prev->next != NULL; i++) {
-        cur = prev->next;
-        prev = cur;
+    for (int i = 0; i < index && prev_node->next != NULL; i++) {
+        cur_node = prev_node->next;
+        prev_node = cur_node;
     }
 
-    return cur;
+    return cur_node;
 }
 
 void *start_routine5(void *arg) {
@@ -127,31 +128,34 @@ void *start_routine5(void *arg) {
     while (1) {
         pthread_testcancel();
 
-        Node *prev = linked_list;
-        Node *cur = NULL;
+        Node *prev_cur_node = linked_list;
+        Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev->lock);
-        while (prev->next != NULL) {
-            cur = prev->next;
+        pthread_mutex_lock(&prev_cur_node->lock);
+        while (prev_cur_node->next != NULL) {
+            cur_node = prev_cur_node->next;
 
             int random_place_1 = rand() % LIST_SIZE;
             if (random_place_1 == 0) {
-                pthread_mutex_unlock(&prev->lock);
-                pthread_mutex_lock(&cur->lock);
-                prev = cur;
+                pthread_mutex_unlock(&prev_cur_node->lock);
+                pthread_mutex_lock(&cur_node->lock);
+                prev_cur_node = cur_node;
+                swap_iter += 1;
                 continue;
             }
 
-            Node* replaceNode = find_by_index(linked_list, random_place_1 - 1);
-            
-            
+            Node* prev_replace_node = find_by_index(linked_list, random_place_1 - 1);
+            Node *replace_node = prev_replace_node->next;
 
-            pthread_mutex_unlock(&prev->lock);
-            pthread_mutex_lock(&cur->lock);
+            // cur_node <==> replace_node
 
-            prev = cur;
+            pthread_mutex_unlock(&prev_cur_node->lock);
+            pthread_mutex_lock(&cur_node->lock);
+
+            prev_cur_node = cur_node;
+            swap_iter += 1;
         }
-        pthread_mutex_unlock(&cur->lock);
+        pthread_mutex_unlock(&cur_node->lock);
     }
 }
 
