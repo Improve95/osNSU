@@ -1,6 +1,8 @@
 #include "head.h"
 #include "queue.h"
 
+#define LIST_SIZE 100
+
 volatile int asc_count = 0;
 volatile int asc_iter = 0;
 volatile int desc_count = 0;
@@ -107,12 +109,53 @@ void *start_routine4(void *arg) {
     }
 }
 
+Node *find_by_index(Node* linked_list, int index) {
+    Node *prev = linked_list;
+    Node *cur = linked_list;
+
+    for (int i = 0; i < index && prev->next != NULL; i++) {
+        cur = prev->next;
+        prev = cur;
+    }
+
+    return cur;
+}
+
 void *start_routine5(void *arg) {
     Node* linked_list = (Node*) arg;
 
+    while (1) {
+        pthread_testcancel();
+
+        Node *prev = linked_list;
+        Node *cur = NULL;
+
+        pthread_mutex_lock(&prev->lock);
+        while (prev->next != NULL) {
+            cur = prev->next;
+
+            int random_place_1 = rand() % LIST_SIZE;
+            if (random_place_1 == 0) {
+                pthread_mutex_unlock(&prev->lock);
+                pthread_mutex_lock(&cur->lock);
+                prev = cur;
+                continue;
+            }
+
+            Node* replaceNode = find_by_index(linked_list, random_place_1 - 1);
+            
+            
+
+            pthread_mutex_unlock(&prev->lock);
+            pthread_mutex_lock(&cur->lock);
+
+            prev = cur;
+        }
+        pthread_mutex_unlock(&cur->lock);
+    }
 }
 
-Node* generate_new_node() {
+Node *generate_new_node() {
     int string_size = rand() % MAX_VALUE_SIZE;
     Node *node = malloc(sizeof(Node));
     memset(node->value, 1, string_size);
@@ -125,18 +168,16 @@ int main() {
     pthread_t tids[7];
 
     Node* linked_list = NULL;
-    const int list_size = 10;
 
     srand(time(NULL));   
-    for (int i = 0; i < list_size; ++i) {
+    for (int i = 0; i < LIST_SIZE; ++i) {
         Node *node = generate_new_node();
         add_node(&linked_list, node);
     }
 
-    
     Node* tmp = linked_list;
     while (tmp->next != NULL) {
-        printf("%ld\n", strlen(tmp->value));
+        printf("%ld ", strlen(tmp->value));
         tmp = tmp->next;
     }
 
@@ -164,19 +205,22 @@ int main() {
         return -1;
     }
 
-    /* err = pthread_create(&tid5, NULL, start_routine5, linked_list);
-    if (err) {
-        perror("pthread_create tid5");
-        return -1;
-    } */
+    for (int i = 0; i < 3; i++) {
+        err = pthread_create(&tids[4 + i], NULL, start_routine5, linked_list);
+        if (err) {
+            perror("pthread_create tid4-6");
+            return -1;
+        }
+    }
     
-    sleep(20);
+    
+    sleep(7);
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 7; ++i) {
         pthread_cancel(tids[i]);
     }
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 7; ++i) {
         pthread_join(tids[i], NULL);
     }
 
