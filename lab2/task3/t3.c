@@ -114,11 +114,17 @@ Node *find_by_index(Node* linked_list, int index) {
     Node *prev_node = linked_list;
     Node *cur_node = linked_list;
 
+    pthread_mutex_lock(&prev_node->lock);
     for (int i = 0; i < index && prev_node->next != NULL; i++) {
         cur_node = prev_node->next;
+
+        pthread_mutex_lock(&cur_node->lock);
+        pthread_mutex_unlock(&prev_node->lock);
+
         prev_node = cur_node;
     }
 
+    // pthread_mutex_unlock(&cur_node->lock);
     return cur_node;
 }
 
@@ -133,10 +139,11 @@ void *start_routine5(void *arg) {
 
         pthread_mutex_lock(&prev_cur_node->lock);
         while (prev_cur_node->next != NULL) {
+            int linked_list_index = 0;
             cur_node = prev_cur_node->next;
 
-            int random_place_1 = rand() % LIST_SIZE;
-            if (random_place_1 == 0) {
+            int random_place_1 = rand() % 15;
+            if (random_place_1 == linked_list_index) {
                 pthread_mutex_unlock(&prev_cur_node->lock);
                 pthread_mutex_lock(&cur_node->lock);
                 prev_cur_node = cur_node;
@@ -144,15 +151,32 @@ void *start_routine5(void *arg) {
                 continue;
             }
 
-            Node* prev_replace_node = find_by_index(linked_list, random_place_1 - 1);
-            Node *replace_node = prev_replace_node->next;
+            pthread_mutex_unlock(&prev_cur_node->lock);
+            Node *prev_replace_node = find_by_index(linked_list, random_place_1 - 1);
+            pthread_mutex_lock(&prev_cur_node->lock);
 
-            // cur_node <==> replace_node
+            // Node *replace_node = prev_replace_node->next;
+
+            // // cur_node <==> replace_node
+            // pthread_mutex_lock(&cur_node->lock);
+            // pthread_mutex_lock(&replace_node->lock);
+            // prev_replace_node->next = cur_node;
+
+            // Node * cur_node_next_tmp = cur_node->next;
+            // cur_node->next = replace_node->next;
+
+            pthread_mutex_unlock(&prev_replace_node->lock);
+
+            // replace_node->next = cur_node_next_tmp;
+            // prev_cur_node->next = replace_node;
+            // pthread_mutex_unlock(&replace_node->lock);
+            // pthread_mutex_unlock(&cur_node->lock);
 
             pthread_mutex_unlock(&prev_cur_node->lock);
             pthread_mutex_lock(&cur_node->lock);
 
             prev_cur_node = cur_node;
+            linked_list_index += 1;
             swap_iter += 1;
         }
         pthread_mutex_unlock(&cur_node->lock);
