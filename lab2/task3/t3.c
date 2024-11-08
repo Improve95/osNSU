@@ -48,7 +48,7 @@ void *start_routine2(void *arg) {
             prev_node = cur_node;
         }
         asc_iter += 1;
-        pthread_mutex_unlock(&cur_node->lock);
+        pthread_mutex_unlock(&prev_node->lock);
     }
 }
 
@@ -77,7 +77,7 @@ void *start_routine3(void *arg) {
             prev_node = cur_node;
         }
         desc_iter += 1;
-        pthread_mutex_unlock(&cur_node->lock);
+        pthread_mutex_unlock(&prev_node->lock);
     }
 }
 
@@ -106,17 +106,57 @@ void *start_routine4(void *arg) {
             prev_node = cur_node;
         }
         eq_iter += 1;
-        pthread_mutex_unlock(&cur_node->lock);
+        pthread_mutex_unlock(&prev_node->lock);
     }
 }
 
 void *start_routine5(void *arg) {
+    Node *linked_list = (Node*) arg;
+
+
+    while (1) {
+        Node *prev = linked_list;
+        Node *cur = NULL;
+
+        pthread_mutex_lock(&prev->lock);
+        while (prev->next != NULL) {
+            cur = prev->next;
+            if (rand() % 100 != 0) {
+                pthread_mutex_unlock(&prev->lock);
+                pthread_mutex_lock(&cur->lock);
+                prev = cur;
+                continue;
+            }
+
+            pthread_mutex_lock(&cur->lock);
+            Node *cur_next_tmp = cur->next;
+            if (cur_next_tmp == NULL) {
+                pthread_mutex_unlock(&cur->lock);
+                break;
+            }
+
+            pthread_mutex_lock(&cur_next_tmp->lock);
+            prev->next = cur_next_tmp;
+            pthread_mutex_unlock(&prev->lock);
+
+            cur->next = cur_next_tmp->next;
+            pthread_mutex_unlock(&cur->lock);
+
+            cur_next_tmp->next = cur;
+
+            swap_count++;
+            prev = cur_next_tmp;
+        }
+        pthread_mutex_unlock(&prev->lock);
+        swap_iter += 1;
+    }
 }
 
 Node *generate_new_node() {
     int string_size = rand() % MAX_VALUE_SIZE;
     Node *node = malloc(sizeof(Node));
     memset(node->value, 1, string_size);
+    pthread_mutex_init(&node->lock, NULL);
     return node;
 }
 
@@ -170,8 +210,7 @@ int main() {
             return -1;
         }
     }
-    
-    
+       
     sleep(7);
 
     for (int i = 0; i < 7; ++i) {
