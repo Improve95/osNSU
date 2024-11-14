@@ -138,7 +138,7 @@ void *start_routine5(void *arg) {
         Node *prev = linked_list;
         Node *cur = NULL;
 
-        pthread_rwlock_rdlock(&prev->lock);
+        pthread_rwlock_wrlock(&prev->lock);
         while (prev->next != NULL) {
             cur = prev->next;
             if (rand() % 100 != 0) {
