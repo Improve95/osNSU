@@ -1,5 +1,5 @@
 rm t.out
-clear
+# clear
 
 make cqp
 time ./t.out

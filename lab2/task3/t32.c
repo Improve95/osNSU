@@ -1,5 +1,24 @@
 #include "head.h"
-#include "queue.h"
+
+#define MAX_VALUE_SIZE 100
+
+typedef struct _Node {
+    char value[MAX_VALUE_SIZE];
+    struct _Node *next;
+    pthread_spinlock_t lock;
+} Node;
+
+void add_node(Node **linked_list, Node *node) {
+    if (*linked_list == NULL) {
+        *linked_list = node;
+    } else {
+        Node* tmp = *linked_list;
+        while (tmp->next != NULL) {
+            tmp = tmp->next;
+        }
+        tmp->next = node;
+    }
+}
 
 #define LIST_SIZE 100
 
@@ -32,7 +51,7 @@ void *start_routine2(void *arg) {
         Node *prev_node = linked_list;
         Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev_node->lock);
+        pthread_spin_lock(&prev_node->lock);
         while (prev_node->next != NULL) {
             cur_node = prev_node->next;
 
@@ -42,13 +61,13 @@ void *start_routine2(void *arg) {
                 asc_count += 1;
             }
 
-            pthread_mutex_unlock(&prev_node->lock);
-            pthread_mutex_lock(&cur_node->lock);
+            pthread_spin_unlock(&prev_node->lock);
+            pthread_spin_lock(&cur_node->lock);
 
             prev_node = cur_node;
         }
         asc_iter += 1;
-        pthread_mutex_unlock(&prev_node->lock);
+        pthread_spin_unlock(&prev_node->lock);
     }
 }
 
@@ -61,7 +80,7 @@ void *start_routine3(void *arg) {
         Node *prev_node = linked_list;
         Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev_node->lock);
+        pthread_spin_lock(&prev_node->lock);
         while (prev_node->next != NULL) {
             cur_node = prev_node->next;
 
@@ -71,13 +90,13 @@ void *start_routine3(void *arg) {
                 desc_count += 1;
             }
 
-            pthread_mutex_unlock(&prev_node->lock);
-            pthread_mutex_lock(&cur_node->lock);
+            pthread_spin_unlock(&prev_node->lock);
+            pthread_spin_lock(&cur_node->lock);
 
             prev_node = cur_node;
         }
         desc_iter += 1;
-        pthread_mutex_unlock(&prev_node->lock);
+        pthread_spin_unlock(&prev_node->lock);
     }
 }
 
@@ -90,7 +109,7 @@ void *start_routine4(void *arg) {
         Node *prev_node = linked_list;
         Node *cur_node = NULL;
 
-        pthread_mutex_lock(&prev_node->lock);
+        pthread_spin_lock(&prev_node->lock);
         while (prev_node->next != NULL) {
             cur_node = prev_node->next;
 
@@ -100,54 +119,55 @@ void *start_routine4(void *arg) {
                 eq_count += 1;
             }
 
-            pthread_mutex_unlock(&prev_node->lock);
-            pthread_mutex_lock(&cur_node->lock);
+            pthread_spin_unlock(&prev_node->lock);
+            pthread_spin_lock(&cur_node->lock);
 
             prev_node = cur_node;
         }
         eq_iter += 1;
-        pthread_mutex_unlock(&prev_node->lock);
+        pthread_spin_unlock(&prev_node->lock);
     }
 }
 
 void *start_routine5(void *arg) {
     Node *linked_list = (Node*) arg;
 
-
     while (1) {
+		pthread_testcancel();
+
         Node *prev = linked_list;
         Node *cur = NULL;
 
-        pthread_mutex_lock(&prev->lock);
+        pthread_spin_lock(&prev->lock);
         while (prev->next != NULL) {
             cur = prev->next;
             if (rand() % 100 != 0) {
-                pthread_mutex_unlock(&prev->lock);
-                pthread_mutex_lock(&cur->lock);
+                pthread_spin_unlock(&prev->lock);
+                pthread_spin_lock(&cur->lock);
                 prev = cur;
                 continue;
             }
 
-            pthread_mutex_lock(&cur->lock);
+            pthread_spin_lock(&cur->lock);
             Node *cur_next_tmp = cur->next;
             if (cur_next_tmp == NULL) {
-                pthread_mutex_unlock(&cur->lock);
+                pthread_spin_unlock(&cur->lock);
                 break;
             }
 
-            pthread_mutex_lock(&cur_next_tmp->lock);
+            pthread_spin_lock(&cur_next_tmp->lock);
             prev->next = cur_next_tmp;
-            pthread_mutex_unlock(&prev->lock);
+            pthread_spin_unlock(&prev->lock);
 
             cur->next = cur_next_tmp->next;
-            pthread_mutex_unlock(&cur->lock);
+            pthread_spin_unlock(&cur->lock);
 
             cur_next_tmp->next = cur;
 
             swap_count++;
             prev = cur_next_tmp;
         }
-        pthread_mutex_unlock(&prev->lock);
+        pthread_spin_unlock(&prev->lock);
         swap_iter += 1;
     }
 }
@@ -156,7 +176,7 @@ Node *generate_new_node() {
     int string_size = rand() % MAX_VALUE_SIZE;
     Node *node = malloc(sizeof(Node));
     memset(node->value, 1, string_size);
-    pthread_mutex_init(&node->lock, NULL);
+    pthread_spin_init(&node->lock, PTHREAD_PROCESS_SHARED);
     return node;
 }
 
