@@ -310,7 +310,6 @@ typedef struct handle_client_args {
     HashMap *cache;
 } handle_client_args;
 
-
 char *read_request(int client_fd) {
     char *buff = malloc(BUFF_SIZE);
     if (buff == NULL) {
@@ -349,7 +348,6 @@ char *read_request(int client_fd) {
     }
     return buff;
 }
-
 
 void *handle_client(void *arg) {
     handle_client_args *parsed = arg;
@@ -444,7 +442,6 @@ static void registerSignal() {
     action.sa_flags = 0;
     sigaction(SIGINT, &action, NULL);
 }
-
 
 int main() {
     registerSignal();
