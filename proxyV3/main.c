@@ -1,5 +1,48 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <poll.h>
+#include <pthread.h>
+#include <signal.h>
+#include <stdbool.h>
+#include "headers/clientConnectionList.h"
+#include "headers/serverConnectionList.h"
+#include "headers/queueService.h"
+#include "headers/threadPool.h"
+#include "headers/argsChecker.h"
+#include "headers/cache.h"
+#include "headers/serverSockerService.h"
 
-#include "main.h"
+#define MAX_CONNECTIONS 100
+#define MAX_CACHE_SIZE 3*1024
+#define BUFFER_SIZE 16 * 1024
+#define MAX_NUM_TRANSLATION_CONNECTIONS 100
+
+int getNewClientSocket(int *localConnectionsCount, int threadId);
+
+void handleGetException(int result, NodeClientConnection **list, ClientConnection *clientConnection, int threadId,
+                        int *localConnectCount);
+
+int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConnection *servers);
+
+void *work(void *param);
+
+void signalHandler(int sig);
+
+void checkArgs(int argcc, const char *argv[]);
+
+void updateServers(NodeServerConnection **listServerConnections, int threadId, int *localConnectCount);
+
+void
+updateClients(NodeClientConnection **listClientsConnections, NodeServerConnection **listServerConnection, int threadId,
+              int *localConnectionsCount);
+
+void
+handleSendingFromCacheException(int result, NodeClientConnection **list, ClientConnection *clientConnection,
+                                int threadId, int *localConnectCount);
+
+void
+handleCachingException(int result, NodeServerConnection **listServers, ServerConnection *serverConnection, int threadId,
+                       int *localConnects);
 
 //3 = CRLF EOF
 
