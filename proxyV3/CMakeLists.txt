@@ -12,7 +12,6 @@ add_executable(proxyV3
         sources/queueService.c
         sources/pthreadService.c
         sources/threadPool.c
-        sources/argsChecker.c
         sources/cache.c
         sources/httpService.c
         sources/serverSockerService.c

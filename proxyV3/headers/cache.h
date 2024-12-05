@@ -9,13 +9,13 @@
 #include "../headers/logging.h"
 #include "cacheList.h"
 
-enum CacheStatus {
+enum cache_status {
     DOWNLOADING,
     VALID,
     INVALID
 } typedef CacheStatus;
 
-struct CacheInfo {
+struct cache_entry {
     size_t allSize;
     size_t recvSize;
     pthread_mutex_t mutex;
@@ -25,10 +25,8 @@ struct CacheInfo {
     size_t numChunks;
     pthread_cond_t numChunksCondVar;
     pthread_mutex_t numChunksMutex;
-
-    int writerId;
     char *url;
-    enum CacheStatus status;
+    CacheStatus status;
 } typedef CacheEntry;
 
 void setCacheStatus(CacheEntry *cacheInfo, CacheStatus status);
@@ -62,11 +60,8 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
 /**
  * If url exits return index cache or else return -1
  * */
-int searchUrlInCacheConncurrent(char *url, CacheEntry *cache, int cacheSize);
+int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize);
 
 int broadcastWaitingCacheClients(CacheEntry *cacheChunk);
-
-//void getCopyData(CacheEntry *info,char **data,int *dataChunksSize, int index);
-
 
 #endif //LAB31_CACHE_H

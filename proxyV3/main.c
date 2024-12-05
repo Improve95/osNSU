@@ -8,7 +8,6 @@
 #include "headers/serverConnectionList.h"
 #include "headers/queueService.h"
 #include "headers/threadPool.h"
-#include "headers/argsChecker.h"
 #include "headers/cache.h"
 #include "headers/serverSockerService.h"
 
@@ -66,12 +65,18 @@ int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConn
  * @return -1 EMPTY_QUEUE
  * */
 
-void checkArgs(int argcc, const char *argv[]) {
-    checkCountArguments(argcc);
+void checkArgs(int argc, const char *argv[]) {
     poolSize = atoi(argv[1]);
-    checkIfValidParsedInt(poolSize);
+    if (argc != 3) {
+        perror("Wrong count of arguments");
+        exit(EXIT_FAILURE);
+    }
+
     int proxySocketPort = atoi(argv[2]);
-    checkIfValidParsedInt(proxySocketPort);
+    if (proxySocketPort <= 0) {
+        fprintf(stderr, "Incorrect port\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void signalHandler(int sig) {
@@ -110,21 +115,15 @@ int getNewClientSocket(int *localConnectionsCount, int threadId) {
     return newClientSocket;
 }
 
-void removeClientWrapper(const char *reason,
-                         int *localConnectCount,
-                         NodeClientConnection **list,
-                         ClientConnection *clientConnection,
-                         int threadId) {
+void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientConnection **list,
+                         ClientConnection *clientConnection, int threadId) {
     printf("Thread: %d, Connection %d, %s\n", threadId, clientConnection->id, reason);
     deleteClientConnectionById(list, clientConnection->id);
     (*localConnectCount)--;
 }
 
-void removeServerWrapper(const char *reason,
-                         int *localConnectCount,
-                         NodeServerConnection **list,
-                         ServerConnection *serverConnection,
-                         int threadId) {
+void removeServerWrapper(const char *reason, int *localConnectCount, NodeServerConnection **list,
+                         ServerConnection *serverConnection, int threadId) {
     printf("Thread: %d, Connection %d, %s\n", threadId, serverConnection->id, reason);
     deleteServerConnectionById(list, serverConnection->id);
     (*localConnectCount)--;
@@ -321,7 +320,6 @@ void *work(void *param) {
 }
 
 int main(int argc, const char *argv[]) {
-
     checkArgs(argc, argv);
     int proxySocketPort = atoi(argv[2]);
 
@@ -348,8 +346,8 @@ int main(int argc, const char *argv[]) {
     if (createThreadPool(poolSize, work, threadsId, &poolThreads) == -1) {
         pthread_exit(NULL);
     }
-    while (true) {
 
+    while (true) {
         int newClientSocket = acceptPollWrapper(proxyFds, proxySocket, 1);
         printf("acceptPollWrapper=%d\n",newClientSocket);
         if (sigCaptured) {
@@ -371,6 +369,7 @@ int main(int argc, const char *argv[]) {
             break;
         }
     }
+
     destroyCache(cache,MAX_CACHE_SIZE);
     close(proxySocket);
     printf("Close proxy socket");

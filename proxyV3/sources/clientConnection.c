@@ -32,7 +32,7 @@ int handleGetMethod(ClientConnection *clientConnection, char *url,
                     size_t bufferLength,
                     int *localConnectionsCount,
                     NodeServerConnection **listServerConnections) {
-    int urlInCacheResult = searchUrlInCacheConncurrent(url, cache, maxCacheSize);
+    int urlInCacheResult = searchUrlInCacheConcurrent(url, cache, maxCacheSize);
     if (urlInCacheResult >= 0) {
         clientConnection->cacheIndex = urlInCacheResult;
         clientConnection->curData = &cache[urlInCacheResult].data->head;

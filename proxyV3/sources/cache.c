@@ -7,9 +7,9 @@
  * if url exits set READ_FROM_CACHE_WRITE_CLIENT state connection and return index cache
  * or else return -1
  * */
-int searchUrlInCacheConncurrent(char *url, CacheEntry *cache, int cacheSize) {
+int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
     for (int j = 0; j < cacheSize; j++) {
-        infoPrintf("searchUrlInCacheConncurrent lock...");
+        infoPrintf("searchUrlInCacheConcurrent lock...");
         pthread_mutex_lock(&cache[j].mutex);
 
         if (cache[j].url != NULL && strcmp(cache[j].url, url) == 0) {
@@ -34,19 +34,14 @@ int searchUrlInCacheConncurrent(char *url, CacheEntry *cache, int cacheSize) {
  * if free cache exits set WRITE_TO_SERVER state connection and return index cache
  * or else return -1
  * */
-int searchFreeCacheConcurrent(char *url,
-                              CacheEntry *cache,
-                              int cacheSize,
-                              int threadId) {
+int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
-
         infoPrintf("searchFreeCacheConcurrent lock...");
         pthread_mutex_lock(&cache[j].mutex);
         if (cache[j].url == NULL) {
             infoPrintf("(%d)SEARCH_CACHE: found free cache id=%d", threadId, j);
             cache[j].readers = 1;
             cache[j].status = DOWNLOADING;
-            cache[j].writerId = threadId;
             cache[j].data = initDataCacheList();
             cache[j].numChunks = 0;
             cache[j].allSize = 0;
@@ -69,10 +64,7 @@ int searchFreeCacheConcurrent(char *url,
  * if not using cache exits set WRITE_TO_SERVER state connection and return index cache
  * or else return -1
  * */
-int searchNotUsingCacheConcurrent(char *url,
-                                  CacheEntry *cache,
-                                  int cacheSize,
-                                  int threadId) {
+int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
         infoPrintf("searchNotUsingCacheConcurrent...");
         pthread_mutex_lock(&cache[j].mutex);
@@ -81,7 +73,6 @@ int searchNotUsingCacheConcurrent(char *url,
             printf("(%d)SEARCH_CACHE: found not using cache id=%d", threadId, j);
             cache[j].readers = 1;
             cache[j].status = DOWNLOADING;
-            cache[j].writerId = threadId;
             cache[j].data = initDataCacheList();
             cache[j].numChunks = 0;
             cache[j].allSize = 0;
@@ -105,15 +96,12 @@ int searchNotUsingCacheConcurrent(char *url,
 
 void makeCacheInvalid(CacheEntry *cache) {
     setCacheStatus(cache, INVALID);
-    cache->writerId = -1;
     pthread_cond_broadcast(&cache->numChunksCondVar);
 }
 
 int initCache(CacheEntry *cache, const int maxCacheSize) {
-
     bool erMS, erCVC, erMC;
     for (int i = 0; i < maxCacheSize; i++) {
-
         cache[i].allSize = 0;
         cache[i].recvSize = 0;
         erMS = initMutex(&cache[i].mutex);
@@ -124,14 +112,12 @@ int initCache(CacheEntry *cache, const int maxCacheSize) {
         erCVC = initCondVariable(&cache[i].numChunksCondVar);
         erMC = initMutex(&cache[i].numChunksMutex);
 
-        cache[i].writerId = -1;
         cache[i].url = NULL;
     }
     return erMS && erCVC && erMC;
 }
 
 void destroyCache(CacheEntry *cache, const int maxCacheSize) {
-
     for (int i = 0; i < maxCacheSize; i++) {
 
         pthread_mutex_destroy(&cache[i].mutex);
