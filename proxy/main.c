@@ -223,7 +223,7 @@ void updateClients(NodeClientConnection **listClientsConnections, NodeServerConn
             handleGetException(DEAD_CLIENT_EXCEPTION, listClientsConnections, clientConnection, threadId, localConnectionsCount);
             continue;
         }
-        if (clientConnection->state == WAITING_REQUEST && (clientConnection->fd->revents & POLLIN) != 0) {
+        if (clientConnection->state == WAITING_REQUEST && (clientConnection->fd->revents & POLLIN)) {
             int result = clientConnection->handleGetRequest(clientConnection, buf, BUFFER_SIZE, cache, MAX_CACHE_SIZE,
                                                             localConnectionsCount, threadId,
                                                             listServerConnection);
