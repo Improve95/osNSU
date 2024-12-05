@@ -1,5 +1,5 @@
-#ifndef LAB31_CLIENTCONNECTION_H
-#define LAB31_CLIENTCONNECTION_H
+#ifndef CLIENTCONNECTION_H
+#define CLIENTCONNECTION_H
 
 #include <unistd.h>
 #include <poll.h>
@@ -58,4 +58,4 @@ int handleGettRequest(struct ClientConnection *self, char *buffer, int bufferSiz
 
 int closeClientConnection(struct ClientConnection *self);
 
-#endif //LAB31_CLIENTCONNECTION_H
+#endif //CLIENTCONNECTION_H

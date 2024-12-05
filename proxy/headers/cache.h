@@ -1,5 +1,5 @@
-#ifndef LAB31_CACHE_H
-#define LAB31_CACHE_H
+#ifndef CACHE_H
+#define CACHE_H
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -64,4 +64,4 @@ int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize);
 
 int broadcastWaitingCacheClients(CacheEntry *cacheChunk);
 
-#endif //LAB31_CACHE_H
+#endif //CACHE_H

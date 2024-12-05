@@ -1,5 +1,5 @@
-#ifndef LAB31_SERVERCONNECTIONLIST_H
-#define LAB31_SERVERCONNECTIONLIST_H
+#ifndef SERVERCONNECTIONLIST_H
+#define SERVERCONNECTIONLIST_H
 
 #include "serverConnection.h"
 
@@ -17,4 +17,4 @@ void deleteServerConnectionById(NodeServerConnection **head_ref, int key);
 
 void freeServerConnectionList(NodeServerConnection **head);
 
-#endif //LAB31_SERVERCONNECTIONLIST_H
+#endif //SERVERCONNECTIONLIST_H

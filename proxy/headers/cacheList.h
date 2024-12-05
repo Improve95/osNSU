@@ -1,5 +1,5 @@
-#ifndef LAB31_CACHELIST_H
-#define LAB31_CACHELIST_H
+#ifndef CACHELIST_H
+#define CACHELIST_H
 
 #include "cache.h"
 
@@ -25,4 +25,4 @@ NodeCacheData *getCacheNode(ListCacheData *list, int n);
 
 void freeList(ListCacheData *list);
 
-#endif //LAB31_CACHELIST_H
+#endif //CACHELIST_H

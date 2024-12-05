@@ -1,5 +1,5 @@
-#ifndef LAB31_HTTPSERVICE_H
-#define LAB31_HTTPSERVICE_H
+#ifndef HTTPSERVICE_H
+#define HTTPSERVICE_H
 
 #include "string.h"
 #include "stdio.h"
@@ -22,4 +22,4 @@ int getIndexOfBody(char *buff, size_t len);
 
 int getServerSocketBy(char *url);
 
-#endif //LAB31_HTTPSERVICE_H
+#endif //HTTPSERVICE_H

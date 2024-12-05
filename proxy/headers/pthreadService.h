@@ -1,5 +1,5 @@
-#ifndef LAB31_PTHREADSERVICE_H
-#define LAB31_PTHREADSERVICE_H
+#ifndef PTHREADSERVICE_H
+#define PTHREADSERVICE_H
 
 #include <stdbool.h>
 #include "pthread.h"
@@ -10,4 +10,4 @@ int initMutex(pthread_mutex_t *mutex);
 
 int initCondVariable(pthread_cond_t *cond);
 
-#endif //LAB31_PTHREADSERVICE_H
+#endif //PTHREADSERVICE_H

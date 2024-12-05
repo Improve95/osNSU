@@ -35,7 +35,6 @@ int createThreadPool(int count, void *runnable, int *threadsId, pthread_t **pool
     return 0;
 }
 
-
 int joinThreadPool(pthread_t *poolThreads, int sizeThreadPool) {
     for (int i = 0; i < sizeThreadPool; i++) {
         if (pthread_join(poolThreads[i], NULL) != 0) {

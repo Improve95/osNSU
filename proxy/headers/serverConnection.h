@@ -1,5 +1,5 @@
-#ifndef LAB31_SERVERCONNECTION_H
-#define LAB31_SERVERCONNECTION_H
+#ifndef SERVERCONNECTION_H
+#define SERVERCONNECTION_H
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -42,4 +42,4 @@ ServerConnection *initServerConnection(int serverSocket, int cacheIndex);
 
 int closeServerConnection(struct ServerConnection *self);
 
-#endif //LAB31_SERVERCONNECTION_H
+#endif //SERVERCONNECTION_H

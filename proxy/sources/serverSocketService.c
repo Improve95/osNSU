@@ -1,11 +1,5 @@
 #include "../headers/serverSocketService.h"
 
-/**
- * @return socket descriptor
- *         BIND_EXCEPTION -1;
- *         SOCKET_EXCEPTION -2;
- *         LISTEN_EXCEPTION -3;
- * */
 int getProxySocket(int port, int maxConnections) {
     struct sockaddr_in listenAddress;
 

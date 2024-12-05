@@ -1,5 +1,5 @@
-#ifndef LAB31_THREADPOOL_H
-#define LAB31_THREADPOOL_H
+#ifndef THREADPOOL_H
+#define THREADPOOL_H
 
 #include <pthread.h>
 #include <stdio.h>
@@ -11,4 +11,4 @@ int joinThreadPool(pthread_t *poolThreads, int sizeThreadPool);
 
 int cancelThreadPool(pthread_t *poolThreads, int sizeThreadPool);
 
-#endif //LAB31_THREADPOOL_H
+#endif //THREADPOOL_H

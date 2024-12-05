@@ -1,15 +1,15 @@
-#ifndef LAB31_QUEUESERVICE_H
-#define LAB31_QUEUESERVICE_H
+#ifndef QUEUESERVICE_H
+#define QUEUESERVICE_H
 
 #include <pthread.h>
 #include "pthreadService.h"
 
-struct Entry {
+struct entry {
     int socket;
     struct Entry *next;
 } typedef Entry;
 
-struct Queue {
+struct queue {
     int size;
 
     Entry *head;
@@ -28,4 +28,4 @@ void putSocketInQueue(Queue *queue, int sock);
 
 int isEmpty(const Queue *queue);
 
-#endif //LAB31_QUEUESERVICE_H
+#endif //QUEUESERVICE_H

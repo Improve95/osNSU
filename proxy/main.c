@@ -297,14 +297,14 @@ void *work(void *param) {
             ClientConnection *clientConnection = initClientConnection(newClientSocket);
             pushClientConnectionBack(&listClientConnections, clientConnection);
             printf("New connection for thread=%d local=%d\n", threadId, localConnectionsCount);
-            // initNewConnection(&connections[localConnectionsCount - 1], newClientSocket);
         }
         localConnectionsCount = updatePoll(fds, listClientConnections, listServerConnections);
-        //printf("LOCAL COUNT CONNECTS=%d\n",localConnectionsCount);
         int polled = 0;
         if (isRun == 1) {
             polled = poll(fds, localConnectionsCount, -1);
-        } else { break; }
+        } else {
+            break;
+        }
 
         if (polled < 0) {
             perror("poll error");

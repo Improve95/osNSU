@@ -1,5 +1,5 @@
-#ifndef LAB31_LOGGING_H
-#define LAB31_LOGGING_H
+#ifndef LOGGING_H
+#define LOGGING_H
 
 #include "stdio.h"
 #include "stdarg.h"
@@ -32,4 +32,4 @@ char *loggerGetTime();
 LOGGER *closeLogger();
 
 LOGGER *initLogger();
-#endif //LAB31_LOGGING_H
+#endif //LOGGING_H

@@ -1,5 +1,5 @@
-#ifndef LAB31_CLIENTCONNECTIONLIST_H
-#define LAB31_CLIENTCONNECTIONLIST_H
+#ifndef CLIENTCONNECTIONLIST_H
+#define CLIENTCONNECTIONLIST_H
 
 #include "clientConnection.h"
 #include <unistd.h>
@@ -17,4 +17,4 @@ void deleteClientConnectionById(NodeClientConnection **head, int key);
 
 void freeClientConnectionList(NodeClientConnection **head);
 
-#endif //LAB31_CLIENTCONNECTIONLIST_H
+#endif //CLIENTCONNECTIONLIST_H
