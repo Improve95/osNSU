@@ -26,6 +26,32 @@ CacheEntry cache[MAX_CACHE_SIZE];
 int proxySocket;
 bool sigCaptured = false;
 
+void checkArgs(int argc, const char *argv[]) {
+    poolSize = atoi(argv[1]);
+    if (argc != 3) {
+        perror("Wrong count of arguments");
+        exit(EXIT_FAILURE);
+    }
+
+    int proxySocketPort = atoi(argv[2]);
+    if (proxySocketPort <= 0) {
+        fprintf(stderr, "Incorrect port\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void signalHandler(int sig) {
+    if (sig == SIGTERM) {
+        write(0, "SIGTERM\n", 8);
+    }
+    if (sig == SIGINT) {
+        write(0, "SIGINT\n", 7);
+    }
+    isRun = 0;
+    sigCaptured = true;
+    pthread_cond_broadcast(&socketsQueue->condVar);
+}
+
 int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConnection *servers) {
     int counter = 0;
     NodeClientConnection *iterClients = clients;
@@ -55,40 +81,6 @@ int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConn
         counter++;
     }
     return counter;
-}
-
-/**
- * If connections exits in socketsQueue its return newSocket
- * else if it doesnt exist and socketsQueue is not empty its return -1
- * else wait
- * @return socketFd
- * @return -1 EMPTY_QUEUE
- * */
-
-void checkArgs(int argc, const char *argv[]) {
-    poolSize = atoi(argv[1]);
-    if (argc != 3) {
-        perror("Wrong count of arguments");
-        exit(EXIT_FAILURE);
-    }
-
-    int proxySocketPort = atoi(argv[2]);
-    if (proxySocketPort <= 0) {
-        fprintf(stderr, "Incorrect port\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void signalHandler(int sig) {
-    if (sig == SIGTERM) {
-        write(0, "SIGTERM\n", 8);
-    }
-    if (sig == SIGINT) {
-        write(0, "SIGINT\n", 7);
-    }
-    isRun = 0;
-    sigCaptured = true;
-    pthread_cond_broadcast(&socketsQueue->condVar);
 }
 
 int getNewClientSocket(int *localConnectionsCount, int threadId) {
@@ -124,13 +116,15 @@ void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientC
 
 void removeServerWrapper(const char *reason, int *localConnectCount, NodeServerConnection **list,
                          ServerConnection *serverConnection, int threadId) {
+
     printf("Thread: %d, Connection %d, %s\n", threadId, serverConnection->id, reason);
     deleteServerConnectionById(list, serverConnection->id);
     (*localConnectCount)--;
 }
 
-void handleCachingException(int result, NodeServerConnection **listServers, ServerConnection *serverConnection, int threadId,
-                            int *localConnects) {
+void handleCachingException(int result, NodeServerConnection **listServers, ServerConnection *serverConnection,
+                            int threadId, int *localConnects) {
+
     if (result == RECV_FROM_SERVER_EXCEPTION) {
         printf("(%d) (%d)| READ_FROM_SERVER_WRITE_CLIENT:recv fron server err\n", threadId, serverConnection->id);
         makeCacheInvalid(&cache[serverConnection->cacheIndex]);
@@ -188,8 +182,8 @@ void handleSendingFromCacheException(int result, NodeClientConnection **list, Cl
     }
 }
 
-void handleGetException(int result, NodeClientConnection **list, ClientConnection *clientConnection, int threadId,
-                        int *localConnectCount) {
+void handleGetException(int result, NodeClientConnection **list, ClientConnection *clientConnection,
+                        int threadId, int *localConnectCount) {
     switch (result) {
         case DEAD_CLIENT_EXCEPTION: {
             removeClientWrapper("CLIENT_MESSAGE:dead client", localConnectCount, list, clientConnection, threadId);
@@ -216,8 +210,9 @@ void handleGetException(int result, NodeClientConnection **list, ClientConnectio
     }
 }
 
-void updateClients(NodeClientConnection **listClientsConnections, NodeServerConnection **listServerConnection, int threadId,
-                   int *localConnectionsCount) {
+void updateClients(NodeClientConnection **listClientsConnections, NodeServerConnection **listServerConnection,
+                   int threadId, int *localConnectionsCount) {
+
     NodeClientConnection *iterClientConnectionNode = *listClientsConnections;
     char buf[BUFFER_SIZE];
 

@@ -3,24 +3,11 @@
 #include "../headers/cache.h"
 #include "../headers/httpService.h"
 
-int sendRequest(struct ServerConnection *self, char *data, int dataSize);
-
-int caching(struct ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferSize);
-
-ServerConnection *initServerConnection(int serverSocket, int cacheIndex) {
-    ServerConnection *outNewServerConnection = (ServerConnection *) malloc(sizeof(ServerConnection));
-
-    outNewServerConnection->serverSocket = serverSocket;
-    outNewServerConnection->cacheIndex = cacheIndex;
-    outNewServerConnection->state = REQUEST_SENDING;
-    outNewServerConnection->id = rand() % 9000 + 1000;
-
-    outNewServerConnection->sendRequest = &sendRequest;
-    outNewServerConnection->caching = &caching;
-    return outNewServerConnection;
+bool isFirstCacheChunk(CacheEntry *cache) {
+    return DOWNLOADING == getCacheStatus(cache) && getCacheRecvSize(cache) == 0;
 }
 
-int sendRequest(struct ServerConnection *self, char *data, int dataSize) {
+int sendRequest(ServerConnection *self, char *data, int dataSize) {
     if (send(self->serverSocket, data, dataSize, MSG_DONTWAIT) <= 0) {
         perror("Send to server");
         return -1;
@@ -29,11 +16,7 @@ int sendRequest(struct ServerConnection *self, char *data, int dataSize) {
     return EXIT_SUCCESS;
 }
 
-bool isFirstCacheChunkk(CacheEntry *cache) {
-    return DOWNLOADING == getCacheStatus(cache) && getCacheRecvSize(cache) == 0;
-}
-
-int caching(struct ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferSize) {
+int caching(ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferSize) {
 
     ssize_t readCount = recv(self->serverSocket, buf, bufferSize, 0);
 
@@ -46,7 +29,7 @@ int caching(struct ServerConnection *self, CacheEntry *cache, void *buf, size_t 
         return SERVER_CLOSED_EXCEPTION;
     }
 
-    if (isFirstCacheChunkk(cache)) {
+    if (isFirstCacheChunk(cache)) {
         char *dest = buf;
         int body = getIndexOfBody(dest, readCount);
 
@@ -60,7 +43,7 @@ int caching(struct ServerConnection *self, CacheEntry *cache, void *buf, size_t 
             broadcastWaitingCacheClients(cache);
             return STATUS_OR_CONTENT_LENGTH_EXCEPTION;
         }
-        printf("Responce:%s\n",buf);
+        printf("Responce:%s\n", (char *) buf);
         setCacheAllSize(cache, (size_t) (contentLength + body));
     }
     if (putDataToCache(cache, buf, readCount) == -1) {
@@ -77,7 +60,20 @@ int caching(struct ServerConnection *self, CacheEntry *cache, void *buf, size_t 
     return EXIT_SUCCESS;
 }
 
-int closeServerConnection(struct ServerConnection *self) {
+ServerConnection *initServerConnection(int serverSocket, int cacheIndex) {
+    ServerConnection *outNewServerConnection = (ServerConnection *) malloc(sizeof(ServerConnection));
+
+    outNewServerConnection->serverSocket = serverSocket;
+    outNewServerConnection->cacheIndex = cacheIndex;
+    outNewServerConnection->state = REQUEST_SENDING;
+    outNewServerConnection->id = rand() % 9000 + 1000;
+
+    outNewServerConnection->sendRequest = &sendRequest;
+    outNewServerConnection->caching = &caching;
+    return outNewServerConnection;
+}
+
+int closeServerConnection(ServerConnection *self) {
     if (self->serverSocket!=-1){
         close(self->serverSocket);
         self->serverSocket=-1;

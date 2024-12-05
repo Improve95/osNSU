@@ -57,18 +57,12 @@ char *getUrlFromData(char *httpData) {
     char *endSmth = strchr(smth, ' ');
 
     char *result = (char *) malloc(sizeof(char) * (endSmth - smth + 1));
-    if (NULL == result) {
+    if (result == NULL) {
         printf("ERROR WHILE MALLOC getUrlFromData");
     }
 
     memcpy(result, smth, (size_t) (endSmth - smth));
     result[endSmth - smth] = '\0';
-
-    //printf("URL:%s\n", result);
-    char *KASPSHIT = strstr(httpData, "kis.v2.scr.kaspersky");
-    if (KASPSHIT != NULL) {
-        return NULL;
-    }
     return result;
 }
 

@@ -45,10 +45,10 @@ struct client_connection {
 
 ClientConnection *initClientConnection(int clientSocket);
 
-int handleGettRequest(ClientConnection *self, char *buffer, int bufferSize,
-                      CacheEntry *cache,
-                      const int maxCacheSize,int*localConnectionsCount,
-                      int threadId, NodeServerConnection **listServerConnections);
+int handleGetRequest(ClientConnection *self, char *buffer, int bufferSize,
+                     CacheEntry *cache,
+                     const int maxCacheSize, int*localConnectionsCount,
+                     int threadId, NodeServerConnection **listServerConnections);
 
 
 int closeClientConnection(ClientConnection *self);

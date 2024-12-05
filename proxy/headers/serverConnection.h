@@ -19,12 +19,12 @@
 #define PUT_CACHE_DATA_EXCEPTION -7
 
 #define END_READING_PROCCESS 1
-enum ServerState{
+enum server_state {
     REQUEST_SENDING,
     CACHING
 } typedef ServerState;
 
-struct ServerConnection {
+struct server_connection {
 
     int serverSocket;
     int cacheIndex;
@@ -32,14 +32,14 @@ struct ServerConnection {
     ServerState state;
     struct pollfd *fd;
 
-    int (*sendRequest)(struct ServerConnection *self, char *data, int dataSize);
+    int (*sendRequest)(struct server_connection *self, char *data, int dataSize);
 
-    int (*caching)(struct ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferSize);
+    int (*caching)(struct server_connection *self, CacheEntry *cache, void *buf, size_t bufferSize);
 
 } typedef ServerConnection;
 
 ServerConnection *initServerConnection(int serverSocket, int cacheIndex);
 
-int closeServerConnection(struct ServerConnection *self);
+int closeServerConnection(ServerConnection *self);
 
 #endif //SERVERCONNECTION_H

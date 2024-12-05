@@ -69,7 +69,7 @@ ClientConnection *initClientConnection(int clientSocket) {
     outNewClientConnection->id = rand() % 9000 + 1000;
 
     outNewClientConnection->sendFromCache = &sendFromCache;
-    outNewClientConnection->handleGetRequest = &handleGettRequest;
+    outNewClientConnection->handleGetRequest = &handleGetRequest;
     return outNewClientConnection;
 }
 
@@ -83,14 +83,9 @@ void handleNotResolvingUrl(int clientSocket) {
     write(clientSocket, errorstr, 11);
 }
 
-int handleGetMethod(ClientConnection *clientConnection, char *url,
-                    CacheEntry *cache,
-                    const int maxCacheSize,
-                    int threadId,
-                    char *buf,
-                    size_t bufferLength,
-                    int *localConnectionsCount,
-                    NodeServerConnection **listServerConnections) {
+int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *cache, const int maxCacheSize, int threadId, char *buf,
+                    size_t bufferLength, int *localConnectionsCount, NodeServerConnection **listServerConnections) {
+
     int urlInCacheResult = searchUrlInCacheConcurrent(url, cache, maxCacheSize);
     if (urlInCacheResult >= 0) {
         clientConnection->cacheIndex = urlInCacheResult;
@@ -125,13 +120,11 @@ int handleGetMethod(ClientConnection *clientConnection, char *url,
 
 }
 
-int handleGettRequest(ClientConnection *self, char *buffer, int bufferSize,
-                      CacheEntry *cache,
-                      const int maxCacheSize, int *localConnectionsCount,
-                      int threadId, NodeServerConnection **listServerConnections) {
+int handleGetRequest(ClientConnection *self, char *buffer, int bufferSize, CacheEntry *cache, const int maxCacheSize,
+                     int *localConnectionsCount, int threadId, NodeServerConnection **listServerConnections) {
 
     ssize_t readCount = recv(self->clientSocket, buffer, bufferSize, 0);
-    printf("handleGettRequest:%s\n", buffer);
+    printf("handleGetRequest:%s\n", buffer);
     if (readCount <= 0) { return RECV_CLIENT_EXCEPTION; }
     if (readCount > 3) {
         char *url = getUrlFromData(buffer);
