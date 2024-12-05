@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "../headers/pthreadService.h"
-#include "../headers/logging.h"
 #include "cacheList.h"
 
 enum cache_status {

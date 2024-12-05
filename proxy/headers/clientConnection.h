@@ -6,7 +6,6 @@
 #include <sys/socket.h>
 #include "cache.h"
 #include "serverConnectionList.h"
-#include "logging.h"
 #include "httpService.h"
 
 #define DEAD_CLIENT_EXCEPTION -2

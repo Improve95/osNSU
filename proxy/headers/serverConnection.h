@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <poll.h>
 #include <sys/socket.h>
-#include "logging.h"
 #include "cache.h"
 #include "httpService.h"
 

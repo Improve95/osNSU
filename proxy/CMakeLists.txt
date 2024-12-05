@@ -13,7 +13,6 @@ add_executable(proxyV3
         sources/cache.c
         sources/httpService.c
         sources/serverSocketService.c
-        sources/logger.c
         sources/clientConnection.c
         sources/serverConnection.c
         sources/cacheList.c

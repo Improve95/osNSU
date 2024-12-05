@@ -24,28 +24,28 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
 
     localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
     if (localCacheStatus == VALID || localCacheStatus == DOWNLOADING) {
-        warnPrintf("numChunksMutex before in handle...");
+        printf("numChunksMutex before in handle...\n");
         pthread_mutex_lock(&cache[self->cacheIndex].numChunksMutex);
 
         localNumChunks = cache[self->cacheIndex].numChunks;
 
         while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks
                && *localConnections == 1) {
-            warnPrintf("\t\tnumChunksMutex pthread_cond_wait before in handle...");
+            printf("numChunksMutex pthread_cond_wait before in handle...\n");
             pthread_cond_wait(&cache[self->cacheIndex].numChunksCondVar,
                               &cache[self->cacheIndex].numChunksMutex);
-            warnPrintf("\t\tnumChunksMutex pthread_cond_wait after in handle");
+            printf("numChunksMutex pthread_cond_wait after in handle\n");
             localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
             if (localCacheStatus == INVALID) {
                 pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
-                warnPrintf("numChunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle");
+                printf("numChunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle\n");
                 return WRITER_CACHE_INVALID_EXCEPTION;
             }
             localNumChunks = cache[self->cacheIndex].numChunks;
         }
 
         pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
-        warnPrintf("numChunksMutex before in handle");
+        printf("numChunksMutex before in handle\n");
         if (sendNewChunksToClient(self, &cache[self->cacheIndex], localNumChunks) == -1) {
             return SEND_TO_CLIENT_EXCEPTION;
         }
