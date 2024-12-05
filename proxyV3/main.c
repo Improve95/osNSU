@@ -338,9 +338,9 @@ int main(int argc, const char *argv[]) {
     signal(SIGINT, signalHandler);
     signal(SIGPIPE, SIG_IGN);
 
-    struct pollfd proxyFds[1];
-    proxyFds[0].fd = proxySocket;
-    proxyFds[0].events = POLLIN;
+    struct pollfd proxyFds;
+    proxyFds.fd = proxySocket;
+    proxyFds.events = POLLIN;
 
     socketsQueue = createQueue();
     if (createThreadPool(poolSize, work, threadsId, &poolThreads) == -1) {
@@ -348,7 +348,7 @@ int main(int argc, const char *argv[]) {
     }
 
     while (true) {
-        int newClientSocket = acceptPollWrapper(proxyFds, proxySocket, 1);
+        int newClientSocket = acceptPollWrapper(&proxyFds, proxySocket, 1);
         printf("acceptPollWrapper=%d\n",newClientSocket);
         if (sigCaptured) {
             joinThreadPool(poolThreads, poolSize);

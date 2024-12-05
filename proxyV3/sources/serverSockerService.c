@@ -7,7 +7,6 @@
  *         LISTEN_EXCEPTION -3;
  * */
 int getProxySocket(int port, int maxConnections) {
-
     struct sockaddr_in listenAddress;
 
     listenAddress.sin_addr.s_addr = htonl(INADDR_ANY);
