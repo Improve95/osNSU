@@ -22,8 +22,8 @@ struct cache_entry {
 
     struct ListCacheData *data;
     size_t numChunks;
-    pthread_cond_t numChunksCondVar;
-    pthread_mutex_t numChunksMutex;
+    pthread_cond_t chunksCondVar;
+    pthread_mutex_t chunksMutex;
     char *url;
     CacheStatus status;
 } typedef CacheEntry;

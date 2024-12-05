@@ -24,28 +24,26 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
 
     localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
     if (localCacheStatus == VALID || localCacheStatus == DOWNLOADING) {
-        printf("numChunksMutex before in handle...\n");
-        pthread_mutex_lock(&cache[self->cacheIndex].numChunksMutex);
+//        printf("chunksMutex before in handle...\n");
+        pthread_mutex_lock(&cache[self->cacheIndex].chunksMutex);
 
         localNumChunks = cache[self->cacheIndex].numChunks;
 
-        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks
-               && *localConnections == 1) {
-            printf("numChunksMutex pthread_cond_wait before in handle...\n");
-            pthread_cond_wait(&cache[self->cacheIndex].numChunksCondVar,
-                              &cache[self->cacheIndex].numChunksMutex);
-            printf("numChunksMutex pthread_cond_wait after in handle\n");
+        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
+//            printf("chunksMutex pthread_cond_wait before in handle...\n");
+            pthread_cond_wait(&cache[self->cacheIndex].chunksCondVar, &cache[self->cacheIndex].chunksMutex);
+//            printf("chunksMutex pthread_cond_wait after in handle\n");
             localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
             if (localCacheStatus == INVALID) {
-                pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
-                printf("numChunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle\n");
+                pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
+//                printf("chunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle\n");
                 return WRITER_CACHE_INVALID_EXCEPTION;
             }
             localNumChunks = cache[self->cacheIndex].numChunks;
         }
 
-        pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
-        printf("numChunksMutex before in handle\n");
+        pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
+//        printf("chunksMutex before in handle\n");
         if (sendNewChunksToClient(self, &cache[self->cacheIndex], localNumChunks) == -1) {
             return SEND_TO_CLIENT_EXCEPTION;
         }
@@ -109,7 +107,6 @@ int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *c
             int result = serverConnection->sendRequest(serverConnection, data, bufferLength);
             (*localConnectionsCount)++;
             if (result != 0) {
-                printf("salam\n");
                 return -1;
             }
             pushServerConnectionBack(listServerConnections, serverConnection);

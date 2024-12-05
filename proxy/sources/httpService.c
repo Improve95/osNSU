@@ -117,13 +117,10 @@ long getContentLengthFromAnswer(char *httpData) {
 
 int getIndexOfBody(char *buff, size_t len) {
     for (size_t j = 0; j < len - 3; ++j) {
-        if (buff[j] == '\r' && buff[j + 1] == '\n' &&
-            buff[j + 2] == '\r' && buff[j + 3] == '\n') {
-
+        if (buff[j] == '\r' && buff[j + 1] == '\n' && buff[j + 2] == '\r' && buff[j + 3] == '\n') {
             return (int) j + 4;
         }
     }
-
     return -1;
 }
 

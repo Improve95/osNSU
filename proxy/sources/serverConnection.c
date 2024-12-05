@@ -4,7 +4,7 @@
 #include "../headers/httpService.h"
 
 bool isFirstCacheChunk(CacheEntry *cache) {
-    return DOWNLOADING == getCacheStatus(cache) && getCacheRecvSize(cache) == 0;
+    return getCacheStatus(cache) == DOWNLOADING && getCacheRecvSize(cache) == 0;
 }
 
 int sendRequest(ServerConnection *self, char *data, int dataSize) {

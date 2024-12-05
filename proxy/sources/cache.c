@@ -25,10 +25,6 @@ int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
     return -1;
 }
 
-/**
- * if free cache exits set WRITE_TO_SERVER state connection and return index cache
- * or else return -1
- * */
 int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
         printf("searchFreeCacheConcurrent lock...\n");
@@ -55,10 +51,6 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
     return -1;
 }
 
-/**
- * if not using cache exits set WRITE_TO_SERVER state connection and return index cache
- * or else return -1
- * */
 int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
         printf("searchNotUsingCacheConcurrent...\n");
@@ -91,7 +83,7 @@ int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, i
 
 void makeCacheInvalid(CacheEntry *cache) {
     setCacheStatus(cache, INVALID);
-    pthread_cond_broadcast(&cache->numChunksCondVar);
+    pthread_cond_broadcast(&cache->chunksCondVar);
 }
 
 int initCache(CacheEntry *cache, const int maxCacheSize) {
@@ -104,8 +96,8 @@ int initCache(CacheEntry *cache, const int maxCacheSize) {
         cache[i].readers = 0;
         cache[i].data = initDataCacheList();
         cache[i].numChunks = 0;
-        erCVC = initCondVariable(&cache[i].numChunksCondVar);
-        erMC = initMutex(&cache[i].numChunksMutex);
+        erCVC = initCondVariable(&cache[i].chunksCondVar);
+        erMC = initMutex(&cache[i].chunksMutex);
 
         cache[i].url = NULL;
     }
@@ -117,8 +109,8 @@ void destroyCache(CacheEntry *cache, const int maxCacheSize) {
 
         pthread_mutex_destroy(&cache[i].mutex);
         freeList(cache[i].data);
-        pthread_cond_destroy(&cache[i].numChunksCondVar);
-        pthread_mutex_destroy(&cache[i].numChunksMutex);
+        pthread_cond_destroy(&cache[i].chunksCondVar);
+        pthread_mutex_destroy(&cache[i].chunksMutex);
 
         free(cache[i].url);
     }
@@ -128,29 +120,29 @@ void destroyCache(CacheEntry *cache, const int maxCacheSize) {
 int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData) {
     pushDataCacheBack(cacheChunk->data, newData, lengthNewData);
     cacheChunk->recvSize += lengthNewData;
-    printf("putDataToCache: numChunksMutex...\n");
-    pthread_mutex_lock(&cacheChunk->numChunksMutex);
+//    printf("putDataToCache: chunksMutex...\n");
+    pthread_mutex_lock(&cacheChunk->chunksMutex);
     cacheChunk->numChunks++;
-    pthread_mutex_unlock(&cacheChunk->numChunksMutex);
-    printf("putDataToCache: numChunksMutex\n");
+    pthread_mutex_unlock(&cacheChunk->chunksMutex);
+//    printf("putDataToCache: chunksMutex\n");
     return 0;
 }
 
 void setCacheStatus(CacheEntry *cacheInfo, CacheStatus status) {
-    printf("setCacheStatus...\n");
+//    printf("setCacheStatus...\n");
     pthread_mutex_lock(&cacheInfo->mutex);
     cacheInfo->status = status;
     pthread_mutex_unlock(&cacheInfo->mutex);
-    printf("setCacheStatusEND\n");
+//    printf("setCacheStatusEND\n");
 }
 
 CacheStatus getCacheStatus(CacheEntry *cacheInfo) {
-    printf("getCacheStatus\n");
+//    printf("getCacheStatus\n");
     CacheStatus returnStatus;
     pthread_mutex_lock(&cacheInfo->mutex);
     returnStatus = cacheInfo->status;
     pthread_mutex_unlock(&cacheInfo->mutex);
-    printf("getCacheStatusEND\n");
+//    printf("getCacheStatusEND\n");
     return returnStatus;
 }
 
@@ -169,5 +161,5 @@ void setCacheAllSize(CacheEntry *cacheInfo, int allSize) {
 }
 
 int broadcastWaitingCacheClients(CacheEntry *cacheChunk) {
-    pthread_cond_broadcast(&cacheChunk->numChunksCondVar);
+    pthread_cond_broadcast(&cacheChunk->chunksCondVar);
 }
