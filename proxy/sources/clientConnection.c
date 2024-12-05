@@ -1,6 +1,65 @@
 #include "../headers/clientConnection.h"
 
-int sendFromCache(struct ClientConnection *self, CacheEntry *cacheList, int *localConnections);
+int sendNewChunksToClient(ClientConnection *connection, CacheEntry *cache, size_t newSize) {
+    NodeCacheData *cacheData = *connection->curData;
+    int counter = connection->numChunksWritten;
+
+    while (cacheData != NULL && (counter < newSize)) {
+        ssize_t bytesWritten = send(connection->clientSocket, cacheData->data, cacheData->lengthData, MSG_DONTWAIT);
+        if (bytesWritten <= 0) {
+            perror("Error client from cache sending");
+            return -1;
+        }
+        connection->curData = &cacheData->next;
+        cacheData = cacheData->next;
+
+        counter++;
+    }
+    return 0;
+}
+
+int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnections) {
+    int localCacheStatus;
+    size_t localNumChunks;
+
+    localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
+    if (localCacheStatus == VALID || localCacheStatus == DOWNLOADING) {
+        warnPrintf("numChunksMutex before in handle...");
+        pthread_mutex_lock(&cache[self->cacheIndex].numChunksMutex);
+
+        localNumChunks = cache[self->cacheIndex].numChunks;
+
+        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks
+               && *localConnections == 1) {
+            warnPrintf("\t\tnumChunksMutex pthread_cond_wait before in handle...");
+            pthread_cond_wait(&cache[self->cacheIndex].numChunksCondVar,
+                              &cache[self->cacheIndex].numChunksMutex);
+            warnPrintf("\t\tnumChunksMutex pthread_cond_wait after in handle");
+            localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
+            if (localCacheStatus == INVALID) {
+                pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
+                warnPrintf("numChunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle");
+                return WRITER_CACHE_INVALID_EXCEPTION;
+            }
+            localNumChunks = cache[self->cacheIndex].numChunks;
+        }
+
+        pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
+        warnPrintf("numChunksMutex before in handle");
+        if (sendNewChunksToClient(self, &cache[self->cacheIndex], localNumChunks) == -1) {
+            return SEND_TO_CLIENT_EXCEPTION;
+        }
+
+        self->numChunksWritten = localNumChunks;
+
+        if (localCacheStatus == VALID && self->numChunksWritten == cache[self->cacheIndex].numChunks) {
+            return SUCCESS_WITH_END;
+        }
+    } else {
+        return CACHE_INVALID_EXCEPTION;
+    }
+    return EXIT_SUCCESS;
+}
 
 ClientConnection *initClientConnection(int clientSocket) {
     ClientConnection *outNewClientConnection = malloc(sizeof(ClientConnection));
@@ -66,7 +125,7 @@ int handleGetMethod(ClientConnection *clientConnection, char *url,
 
 }
 
-int handleGettRequest(struct ClientConnection *self, char *buffer, int bufferSize,
+int handleGettRequest(ClientConnection *self, char *buffer, int bufferSize,
                       CacheEntry *cache,
                       const int maxCacheSize, int *localConnectionsCount,
                       int threadId, NodeServerConnection **listServerConnections) {
@@ -97,7 +156,7 @@ int handleGettRequest(struct ClientConnection *self, char *buffer, int bufferSiz
     return EXIT_SUCCESS;
 }
 
-int closeClientConnection(struct ClientConnection *self) {
+int closeClientConnection(ClientConnection *self) {
     if (self->clientSocket != -1) {
         int closeRes = close(self->clientSocket);
         if (closeRes != 0) {
@@ -105,66 +164,5 @@ int closeClientConnection(struct ClientConnection *self) {
         }
     }
     free(self);
-    return EXIT_SUCCESS;
-}
-
-int sendNewChunksToClientt(ClientConnection *connection, CacheEntry *cache, size_t newSize) {
-    NodeCacheData *cacheData = *connection->curData;
-    int counter = connection->numChunksWritten;
-
-    while (cacheData != NULL && (counter < newSize)) {
-        ssize_t bytesWritten = send(connection->clientSocket, cacheData->data, cacheData->lengthData, MSG_DONTWAIT);
-        if (bytesWritten <= 0) {
-            perror("Error client from cache sending");
-            return -1;
-        }
-        connection->curData = &cacheData->next;
-        cacheData = cacheData->next;
-
-        counter++;
-    }
-    return 0;
-}
-
-int sendFromCache(struct ClientConnection *self, CacheEntry *cache, int *localConnections) {
-    int localCacheStatus;
-    size_t localNumChunks;
-
-    localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
-    if (localCacheStatus == VALID || localCacheStatus == DOWNLOADING) {
-        warnPrintf("numChunksMutex before in handle...");
-        pthread_mutex_lock(&cache[self->cacheIndex].numChunksMutex);
-
-        localNumChunks = cache[self->cacheIndex].numChunks;
-
-        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks
-               && *localConnections == 1) {
-            warnPrintf("\t\tnumChunksMutex pthread_cond_wait before in handle...");
-            pthread_cond_wait(&cache[self->cacheIndex].numChunksCondVar,
-                              &cache[self->cacheIndex].numChunksMutex);
-            warnPrintf("\t\tnumChunksMutex pthread_cond_wait after in handle");
-            localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
-            if (localCacheStatus == INVALID) {
-                pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
-                warnPrintf("numChunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle");
-                return WRITER_CACHE_INVALID_EXCEPTION;
-            }
-            localNumChunks = cache[self->cacheIndex].numChunks;
-        }
-
-        pthread_mutex_unlock(&cache[self->cacheIndex].numChunksMutex);
-        warnPrintf("numChunksMutex before in handle");
-        if (sendNewChunksToClientt(self, &cache[self->cacheIndex], localNumChunks) == -1) {
-            return SEND_TO_CLIENT_EXCEPTION;
-        }
-
-        self->numChunksWritten = localNumChunks;
-
-        if (localCacheStatus == VALID && self->numChunksWritten == cache[self->cacheIndex].numChunks) {
-            return SUCCESS_WITH_END;
-        }
-    } else {
-        return CACHE_INVALID_EXCEPTION;
-    }
     return EXIT_SUCCESS;
 }

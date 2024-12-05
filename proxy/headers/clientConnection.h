@@ -20,12 +20,12 @@
 #define CACHE_INVALID_EXCEPTION -44
 #define SUCCESS_WITH_END 11
 
-enum ClientState {
+enum client_state {
     WAITING_REQUEST,
     SENDING_FROM_CACHE
 } typedef ClientState;
 
-struct ClientConnection {
+struct client_connection {
     int clientSocket;
     int id;
     int numChunksWritten;
@@ -33,14 +33,9 @@ struct ClientConnection {
     NodeCacheData **curData;
     ClientState state;
     struct pollfd *fd;
-/**
- * @return SEND_TO_CLIENT_EXCEPTION -22
- *         WRITER_CACHE_INVALID_EXCEPTION -33
- *         CACHE_INVALID_EXCEPTION -44
- *         SUCCESS_WITH_END 11
- */
-    int (*sendFromCache)(struct ClientConnection *self, CacheEntry *cache,int *localConnections);
-    int (*handleGetRequest)(struct ClientConnection *self, char *buffer, int bufferSize,
+
+    int (*sendFromCache)(struct client_connection *self, CacheEntry *cache,int *localConnections);
+    int (*handleGetRequest)(struct client_connection *self, char *buffer, int bufferSize,
                             CacheEntry *cache,
                             const int maxCacheSize,
                             int *localConnectionsCount,
@@ -50,12 +45,12 @@ struct ClientConnection {
 
 ClientConnection *initClientConnection(int clientSocket);
 
-int handleGettRequest(struct ClientConnection *self, char *buffer, int bufferSize,
+int handleGettRequest(ClientConnection *self, char *buffer, int bufferSize,
                       CacheEntry *cache,
                       const int maxCacheSize,int*localConnectionsCount,
                       int threadId, NodeServerConnection **listServerConnections);
 
 
-int closeClientConnection(struct ClientConnection *self);
+int closeClientConnection(ClientConnection *self);
 
 #endif //CLIENTCONNECTION_H

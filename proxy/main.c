@@ -299,7 +299,7 @@ void *work(void *param) {
             printf("New connection for thread=%d local=%d\n", threadId, localConnectionsCount);
         }
         localConnectionsCount = updatePoll(fds, listClientConnections, listServerConnections);
-        int polled = 0;
+        int polled;
         if (isRun == 1) {
             polled = poll(fds, localConnectionsCount, -1);
         } else {
