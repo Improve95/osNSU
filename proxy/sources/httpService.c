@@ -74,8 +74,7 @@ char *getHostFromUrl(char *sH) {
     char *result = (char *) malloc(sizeof(char) * (endHost - startHost + 1));
     if (NULL == result) {
         printf("ERROR WHILE MALLOC getHostFromUrl");
-        //return 1;
-
+        return NULL;
     }
 
     memcpy(result, startHost, (size_t) (endHost - startHost));

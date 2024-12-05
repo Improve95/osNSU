@@ -3,10 +3,6 @@
 #include "../headers/cache.h"
 #include "../headers/logging.h"
 
-/**
- * if url exits set READ_FROM_CACHE_WRITE_CLIENT state connection and return index cache
- * or else return -1
- * */
 int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
     for (int j = 0; j < cacheSize; j++) {
         infoPrintf("searchUrlInCacheConcurrent lock...");

@@ -91,10 +91,9 @@ int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *c
         clientConnection->cacheIndex = urlInCacheResult;
         clientConnection->curData = &cache[urlInCacheResult].data->head;
     } else {
-        int freeCacheIndex = searchFreeCacheConcurrent(url, cache, maxCacheSize, threadId);
-        if ((-1 != freeCacheIndex) ||
-            (-1 != (freeCacheIndex =
-                            searchNotUsingCacheConcurrent(url, cache, maxCacheSize, threadId)))) {
+        int freeCacheIndex;
+        if (-1 != (freeCacheIndex = searchFreeCacheConcurrent(url, cache, maxCacheSize, threadId)) ||
+            -1 != (freeCacheIndex = searchNotUsingCacheConcurrent(url, cache, maxCacheSize, threadId))) {
 
             int serverSocket = getServerSocketBy(url);
             if (serverSocket == -1) {
@@ -116,8 +115,8 @@ int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *c
             pushServerConnectionBack(listServerConnections, serverConnection);
         }
     }
-    return 0;
 
+    return 0;
 }
 
 int handleGetRequest(ClientConnection *self, char *buffer, int bufferSize, CacheEntry *cache, const int maxCacheSize,
@@ -135,9 +134,8 @@ int handleGetRequest(ClientConnection *self, char *buffer, int bufferSize, Cache
                 free(url);
                 return NOT_GET_EXCEPTION;
             } else {
-                int result = handleGetMethod(self, url, cache, maxCacheSize, threadId, buffer, readCount,
-                                             localConnectionsCount,
-                                             listServerConnections);
+                int result = handleGetMethod(self, url, cache, maxCacheSize, threadId, buffer,
+                                             readCount, localConnectionsCount, listServerConnections);
                 if (result == RESOLVING_SOCKET_FROM_URL_EXCEPTION) {
                     return RESOLVING_SOCKET_FROM_URL_EXCEPTION;
                 }

@@ -255,8 +255,7 @@ void updateServers(NodeServerConnection **listServerConnections, int threadId, i
     while (iterServerConnectionNode != NULL) {
         ServerConnection *serverConnection = iterServerConnectionNode->connection;
         if (serverConnection->state == CACHING && (serverConnection->fd->revents & POLLIN)) {
-            int result = serverConnection->caching(serverConnection, &cache[serverConnection->cacheIndex],
-                                                   buf, BUFFER_SIZE);
+            int result = serverConnection->caching(serverConnection, &cache[serverConnection->cacheIndex], buf, BUFFER_SIZE);
             if (result != EXIT_SUCCESS) {
                 iterServerConnectionNode = iterServerConnectionNode->next;
                 if (result == END_READING_PROCCESS) {
