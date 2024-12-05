@@ -9,7 +9,7 @@
 #include "headers/queueService.h"
 #include "headers/threadPool.h"
 #include "headers/cache.h"
-#include "headers/serverSockerService.h"
+#include "headers/serverSocketService.h"
 
 #define MAX_CONNECTIONS 100
 #define MAX_CACHE_SIZE 3*1024

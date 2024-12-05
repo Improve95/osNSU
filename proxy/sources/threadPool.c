@@ -16,7 +16,6 @@ int createThreadPool(int count, void *runnable, int *threadsId, pthread_t **pool
     }
 
     for (int i = 0; i < count; ++i) {
-
         threadsId[i] = i;
 
         if (pthread_create(&newPoolThreads[i], NULL, runnable, &threadsId[i]) > 0) {
@@ -44,12 +43,3 @@ int joinThreadPool(pthread_t *poolThreads, int sizeThreadPool) {
         }
     }
 }
-
-int cancelThreadPool(pthread_t *poolThreads, int sizeThreadPool) {
-    for (int i = 0; i < sizeThreadPool; i++) {
-        if (pthread_cancel(poolThreads[i]) != 0) {
-            printf("cancelThreadPool: error while cancel pthread i=%d\n", i);
-        }
-    }
-}
-

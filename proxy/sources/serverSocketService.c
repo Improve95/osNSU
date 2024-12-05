@@ -1,4 +1,4 @@
-#include "../headers/serverSockerService.h"
+#include "../headers/serverSocketService.h"
 
 /**
  * @return socket descriptor
