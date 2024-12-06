@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 99)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
 
-add_executable(proxyV3
+add_executable(proxy
         main.c
         sources/queueService.c
         sources/pthreadService.c
