@@ -14,7 +14,7 @@ void *mythread(void *arg) {
 	static int local_static = 35;
 	const int local_const = 40;
 
-	printf("mythread [%d %d %d %ld]: Hello from mythread!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n\n", 
+//	printf("mythread [%d %d %d %ld]: Hello from mythread!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n\n",
 		getpid(), getppid(), gettid(), pthread_self(), &global, &global_static, &local, &local_static, &local_const);
 	return NULL;
 }
@@ -27,14 +27,14 @@ int main() {
 	static int local_static = 20;
 	const int local_const = 25;
 
-	printf("main [%d %d %d]: Hello from main!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n\n", 
+//	printf("main [%d %d %d]: Hello from main!\nVariables: global %p, global_static %p local %p local_static %p local_const %p\n\n",
 		getpid(), getppid(), gettid(), &global, &global_static, &local, &local_static, &local_const);
 
 	// printf("%s", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	for (int i = 0; i < 5; i++) {
 		err = pthread_create(&tid[i], NULL, mythread, NULL);
 		if (err) {
-			printf("main: pthread_create() failed: %s\n", strerror(err));
+//			printf("main: pthread_create() failed: %s\n", strerror(err));
 			return -1;
 		}
 	}
@@ -44,8 +44,8 @@ int main() {
 
 	printf("\n");
 	
-	printf("ref threads is equal: %d\n", tid[0] == tid[1]);
-	printf("thread is equal: %d\n", pthread_equal(tid[0], tid[1]));
+//	printf("ref threads is equal: %d\n", tid[0] == tid[1]);
+//	printf("thread is equal: %d\n", pthread_equal(tid[0], tid[1]));
 
 	return 0;
 }

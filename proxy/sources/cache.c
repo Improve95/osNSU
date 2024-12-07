@@ -30,7 +30,7 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
 //        printf("searchFreeCacheConcurrent lock...\n");
         pthread_mutex_lock(&cache[j].mutex);
         if (cache[j].url == NULL) {
-            printf("(%d)SEARCH_CACHE: found free cache id=%d\n", threadId, j);
+//            printf("(%d)SEARCH_CACHE: found free cache id=%d\n", threadId, j);
             cache[j].readers = 1;
             cache[j].status = DOWNLOADING;
             cache[j].data = initDataCacheList();
@@ -53,11 +53,12 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
 
 int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
-        printf("searchNotUsingCacheConcurrent...\n");
+//        printf("searchNotUsingCacheConcurrent...\n");
         pthread_mutex_lock(&cache[j].mutex);
 
-        if (cache[j].readers == 0 || cache[j].status == INVALID) {
-            printf("(%d)SEARCH_CACHE: found not using cache id=%d", threadId, j);
+        if (/*cache[j].readers == 0 || */cache[j].status == INVALID) {
+            perror("thread (%d) search_cache: found not using cache id=%d");
+//            printf("thread (%d) search_cache: found not using cache id=%d", threadId, j);
             cache[j].readers = 1;
             cache[j].status = DOWNLOADING;
             cache[j].data = initDataCacheList();
@@ -71,11 +72,11 @@ int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, i
             memcpy(cache[j].url, url, sizeof(char) * sizeof(url));
 
             pthread_mutex_unlock(&cache[j].mutex);
-            printf("searchNotUsingCacheConcurrent\n");
+//            printf("searchNotUsingCacheConcurrent\n");
             return j;
         } else {
             pthread_mutex_unlock(&cache[j].mutex);
-            printf("searchNotUsingCacheAndSetDownloadingStateEND\n");
+//            printf("searchNotUsingCacheEND\n");
         }
     }
     return -1;
@@ -114,18 +115,26 @@ void destroyCache(CacheEntry *cache, const int maxCacheSize) {
 
         free(cache[i].url);
     }
-    printf("destroy cache\n");
+//    printf("destroy cache\n");
 }
 
-int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData) {
+int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData, int threadId) {
     pushDataCacheBack(cacheChunk->data, newData, lengthNewData);
     cacheChunk->recvSize += lengthNewData;
-//    printf("putDataToCache: chunksMutex...\n");
+//    printf("thread %d: putDataToCache: chunksMutex...\n", threadId);
     pthread_mutex_lock(&cacheChunk->chunksMutex);
     cacheChunk->numChunks++;
     pthread_mutex_unlock(&cacheChunk->chunksMutex);
 //    printf("putDataToCache: chunksMutex\n");
     return 0;
+}
+
+void addReader(CacheEntry *cacheInfo) {
+
+}
+
+void removeReader(CacheEntry *cacheInfo) {
+
 }
 
 void setCacheStatus(CacheEntry *cacheInfo, CacheStatus status) {

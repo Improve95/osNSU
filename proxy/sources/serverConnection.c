@@ -16,7 +16,7 @@ int sendRequest(ServerConnection *self, char *data, int dataSize) {
     return EXIT_SUCCESS;
 }
 
-int caching(ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferSize) {
+int caching(ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferSize, int threadId) {
 
     ssize_t readCount = recv(self->serverSocket, buf, bufferSize, 0);
 
@@ -46,7 +46,8 @@ int caching(ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferS
         printf("Responce:%s\n", (char *) buf);
         setCacheAllSize(cache, (size_t) (contentLength + body));
     }
-    if (putDataToCache(cache, buf, readCount) == -1) {
+//    sleep(1);
+    if (putDataToCache(cache, buf, readCount, threadId) == -1) {
         broadcastWaitingCacheClients(cache);
         return PUT_CACHE_DATA_EXCEPTION;
     }

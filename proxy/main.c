@@ -12,7 +12,7 @@
 #include "headers/serverSocketService.h"
 
 #define MAX_CONNECTIONS 100
-#define MAX_CACHE_SIZE 3*1024
+#define MAX_CACHE_SIZE 3 * 1024
 #define BUFFER_SIZE 16 * 1024
 #define MAX_NUM_TRANSLATION_CONNECTIONS 100
 
@@ -76,14 +76,13 @@ int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConn
             fds[counter].events = POLLIN;
         }
         fds[counter].fd = serverConnection->serverSocket;
-        serverConnection->fd = &fds[counter];
         iterServers = iterServers->next;
         counter++;
     }
     return counter;
 }
 
-int getNewClientSocket(int *localConnectionsCount, int threadId) {
+int getNewClientSocket(int *localConnectionsCount) {
     int newClientSocket = -1;
     //printf("Thread: %d, %s\n", threadId,"queueMutex lock...\n");
     pthread_mutex_lock(&socketsQueue->queueMutex);
@@ -234,7 +233,7 @@ void updateClients(NodeClientConnection **listClientsConnections, NodeServerConn
                 continue;
             }
         } else if (clientConnection->state == SENDING_FROM_CACHE) {
-            int result = clientConnection->sendFromCache(clientConnection, cache, localConnectionsCount);
+            int result = clientConnection->sendFromCache(clientConnection, cache, localConnectionsCount, threadId);
             if (result != 0) {
                 printf("handleSendingFromCacheException\n");
                 iterClientConnectionNode = iterClientConnectionNode->next;
@@ -255,7 +254,7 @@ void updateServers(NodeServerConnection **listServerConnections, int threadId, i
     while (iterServerConnectionNode != NULL) {
         ServerConnection *serverConnection = iterServerConnectionNode->connection;
         if (serverConnection->state == CACHING) {
-            int result = serverConnection->caching(serverConnection, &cache[serverConnection->cacheIndex], buf, BUFFER_SIZE);
+            int result = serverConnection->caching(serverConnection, &cache[serverConnection->cacheIndex], buf, BUFFER_SIZE, threadId);
             if (result != EXIT_SUCCESS) {
                 iterServerConnectionNode = iterServerConnectionNode->next;
                 if (result == END_READING_PROCCESS) {
@@ -286,7 +285,7 @@ void *work(void *param) {
     NodeServerConnection *listServerConnections = NULL;
 
     while (isRun == 1) {
-        int newClientSocket = getNewClientSocket(&localConnectionsCount, threadId);
+        int newClientSocket = getNewClientSocket(&localConnectionsCount);
         if (newClientSocket != -1) {
             ClientConnection *clientConnection = initClientConnection(newClientSocket);
             pushClientConnectionBack(&listClientConnections, clientConnection);

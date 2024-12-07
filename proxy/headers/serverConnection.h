@@ -29,11 +29,10 @@ struct server_connection {
     int cacheIndex;
     int id;
     ServerState state;
-    struct pollfd *fd;
 
     int (*sendRequest)(struct server_connection *self, char *data, int dataSize);
 
-    int (*caching)(struct server_connection *self, CacheEntry *cache, void *buf, size_t bufferSize);
+    int (*caching)(struct server_connection *self, CacheEntry *cache, void *buf, size_t bufferSize, int threadId);
 
 } typedef ServerConnection;
 

@@ -6,7 +6,7 @@ char *createGet(char *url, size_t *len) {
     //protocol
     char *afterProtocol = strstr(url, "://");
     if (NULL == afterProtocol) {
-        fprintf(stderr, "Incorrect input.\n");
+//        fprintf(stderr, "Incorrect input.\n");
     }
 
     //host

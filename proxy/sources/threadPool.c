@@ -4,13 +4,13 @@ int createThreadPool(int count, void *runnable, int *threadsId, pthread_t **pool
     pthread_t *newPoolThreads;
     newPoolThreads = (pthread_t *) malloc(sizeof(pthread_t) * count);
     if (NULL == newPoolThreads) {
-        printf("ERROR WHILE MALLOC createThreadPool\n");
+//        printf("ERROR WHILE MALLOC createThreadPool\n");
         return -1;
     }
 
     threadsId = (int *) malloc(sizeof(int) * count);
     if (NULL == threadsId) {
-        printf("ERROR WHILE MALLOC createThreadPool\n");
+//        printf("ERROR WHILE MALLOC createThreadPool\n");
         free(newPoolThreads);
         return -1;
     }
@@ -38,7 +38,7 @@ int createThreadPool(int count, void *runnable, int *threadsId, pthread_t **pool
 int joinThreadPool(pthread_t *poolThreads, int sizeThreadPool) {
     for (int i = 0; i < sizeThreadPool; i++) {
         if (pthread_join(poolThreads[i], NULL) != 0) {
-            printf("joinThreadPool: error while join pthread i=%d\n", i);
+//            printf("joinThreadPool: error while join pthread i=%d\n", i);
         }
     }
 }

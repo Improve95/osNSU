@@ -18,19 +18,19 @@ int sendNewChunksToClient(ClientConnection *connection, size_t newSize) {
     return 0;
 }
 
-int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnections) {
+int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnections, int threadId) {
     int localCacheStatus;
     size_t localNumChunks;
 
     localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
     if (localCacheStatus == VALID || localCacheStatus == DOWNLOADING) {
-//        printf("chunksMutex before in handle...\n");
+//        printf("threadid %d: sendFromCache\n", threadId);
         pthread_mutex_lock(&cache[self->cacheIndex].chunksMutex);
 
         localNumChunks = cache[self->cacheIndex].numChunks;
 
-        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
-//            printf("chunksMutex pthread_cond_wait before in handle...\n");
+        /*while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
+            printf("thread %d: chunksMutex pthread_cond_wait before in handle...\n", threadId);
             pthread_cond_wait(&cache[self->cacheIndex].chunksCondVar, &cache[self->cacheIndex].chunksMutex);
 //            printf("chunksMutex pthread_cond_wait after in handle\n");
             localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
@@ -40,10 +40,9 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
                 return WRITER_CACHE_INVALID_EXCEPTION;
             }
             localNumChunks = cache[self->cacheIndex].numChunks;
-        }
+        }*/
 
         pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
-//        printf("chunksMutex before in handle\n");
         if (sendNewChunksToClient(self, localNumChunks) == -1) {
             return SEND_TO_CLIENT_EXCEPTION;
         }
@@ -81,7 +80,7 @@ void handleNotResolvingUrl(int clientSocket) {
     write(clientSocket, errorstr, 11);
 }
 
-int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *cache, const int maxCacheSize, int threadId, char *buf,
+int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *cache, const int maxCacheSize, int threadId,
                     size_t bufferLength, int *localConnectionsCount, NodeServerConnection **listServerConnections) {
 
     int urlInCacheResult = searchUrlInCacheConcurrent(url, cache, maxCacheSize);
@@ -90,8 +89,8 @@ int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *c
         clientConnection->curData = &cache[urlInCacheResult].data->head;
     } else {
         int freeCacheIndex;
-        if (-1 != (freeCacheIndex = searchFreeCacheConcurrent(url, cache, maxCacheSize, threadId)) ||
-            -1 != (freeCacheIndex = searchNotUsingCacheConcurrent(url, cache, maxCacheSize, threadId))) {
+        if (-1 != (freeCacheIndex = searchNotUsingCacheConcurrent(url, cache, maxCacheSize, threadId)) ||
+            -1 != (freeCacheIndex = searchFreeCacheConcurrent(url, cache, maxCacheSize, threadId))) {
 
             int serverSocket = getServerSocketBy(url);
             if (serverSocket == -1) {
@@ -131,7 +130,7 @@ int handleGetRequest(ClientConnection *self, char *buffer, int bufferSize, Cache
                 free(url);
                 return NOT_GET_EXCEPTION;
             } else {
-                int result = handleGetMethod(self, url, cache, maxCacheSize, threadId, buffer,
+                int result = handleGetMethod(self, url, cache, maxCacheSize, threadId,
                                              readCount, localConnectionsCount, listServerConnections);
                 if (result == RESOLVING_SOCKET_FROM_URL_EXCEPTION) {
                     return RESOLVING_SOCKET_FROM_URL_EXCEPTION;

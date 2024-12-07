@@ -33,7 +33,7 @@ struct client_connection {
     ClientState state;
     struct pollfd *fd;
 
-    int (*sendFromCache)(struct client_connection *self, CacheEntry *cache,int *localConnections);
+    int (*sendFromCache)(struct client_connection *self, CacheEntry *cache, int *localConnections, int threadId);
     int (*handleGetRequest)(struct client_connection *self, char *buffer, int bufferSize,
                             CacheEntry *cache,
                             const int maxCacheSize,

@@ -38,7 +38,11 @@ int getCacheAllSize(CacheEntry *cacheInfo);
 
 void setCacheAllSize(CacheEntry *cacheInfo, int allSize);
 
-int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData);
+int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData, int threadId);
+
+void addReader(CacheEntry *cacheInfo);
+
+void removeReader(CacheEntry *cacheInfo);
 
 void destroyCache(CacheEntry *cache, int maxCacheSize);
 
@@ -46,19 +50,10 @@ int initCache(CacheEntry *cache, int maxCacheSize);
 
 void makeCacheInvalid(CacheEntry *cache);
 
-/**
- * If not using cache exits return index cache or else return -1
- * */
 int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId);
 
-/**
- * If free cache exits  return index cache or else return -1
- * */
 int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId);
 
-/**
- * If url exits return index cache or else return -1
- * */
 int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize);
 
 int broadcastWaitingCacheClients(CacheEntry *cacheChunk);
