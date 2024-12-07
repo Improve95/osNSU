@@ -6,7 +6,7 @@
 
 struct entry {
     int socket;
-    struct Entry *next;
+    struct entry *next;
 } typedef Entry;
 
 struct queue {

@@ -1,18 +1,17 @@
 #ifndef CACHELIST_H
 #define CACHELIST_H
 
-#include "cache.h"
 
-struct NodeCacheData {
+struct node_cache_date {
 
     char *data;
     int lengthData;
 
-    struct NodeCacheData *next;
+    struct node_cache_date *next;
 
 } typedef NodeCacheData;
 
-struct ListCacheData {
+struct list_cache_data {
     NodeCacheData *head;
     NodeCacheData *tail;
 } typedef ListCacheData;

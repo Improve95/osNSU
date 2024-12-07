@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../headers/pthreadService.h"
+#include "pthreadService.h"
 #include "cacheList.h"
 
 enum cache_status {
@@ -20,7 +20,7 @@ struct cache_entry {
     pthread_mutex_t mutex;
     size_t readers;
 
-    struct ListCacheData *data;
+    ListCacheData *data;
     size_t numChunks;
     pthread_cond_t chunksCondVar;
     pthread_mutex_t chunksMutex;

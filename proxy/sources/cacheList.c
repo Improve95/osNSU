@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "../headers/cacheList.h"
 
 void pushDataCacheBack(ListCacheData *list, char *data, int length) {

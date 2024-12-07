@@ -27,7 +27,7 @@ int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
 
 int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
-        printf("searchFreeCacheConcurrent lock...\n");
+//        printf("searchFreeCacheConcurrent lock...\n");
         pthread_mutex_lock(&cache[j].mutex);
         if (cache[j].url == NULL) {
             printf("(%d)SEARCH_CACHE: found free cache id=%d\n", threadId, j);
@@ -41,11 +41,11 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
             memcpy(cache[j].url, url, sizeof(char) * strlen(url) + 1);
 
             pthread_mutex_unlock(&cache[j].mutex);
-            printf("searchFreeCacheAndSetDownloadingStateEND\n");
+//            printf("searchFreeCacheAndSetDownloadingStateEND\n");
             return j;
         } else {
             pthread_mutex_unlock(&cache[j].mutex);
-            printf("searchFreeCacheAndSetDownloadingStateEND\n");
+//            printf("searchFreeCacheAndSetDownloadingStateEND\n");
         }
     }
     return -1;
