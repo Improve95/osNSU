@@ -1,6 +1,6 @@
 #include "../headers/clientConnection.h"
 
-int sendNewChunksToClient(ClientConnection *connection, CacheEntry *cache, size_t newSize) {
+int sendNewChunksToClient(ClientConnection *connection, size_t newSize) {
     NodeCacheData *cacheData = *connection->curData;
     int counter = connection->numChunksWritten;
 
@@ -44,7 +44,7 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
 
         pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
 //        printf("chunksMutex before in handle\n");
-        if (sendNewChunksToClient(self, &cache[self->cacheIndex], localNumChunks) == -1) {
+        if (sendNewChunksToClient(self, localNumChunks) == -1) {
             return SEND_TO_CLIENT_EXCEPTION;
         }
 
