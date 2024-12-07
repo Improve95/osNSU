@@ -223,7 +223,7 @@ void updateClients(NodeClientConnection **listClientsConnections, NodeServerConn
             handleGetException(DEAD_CLIENT_EXCEPTION, listClientsConnections, clientConnection, threadId, localConnectionsCount);
             continue;
         }
-        if (clientConnection->state == WAITING_REQUEST && (clientConnection->fd->revents & POLLIN)) {
+        if (clientConnection->state == WAITING_REQUEST) {
             int result = clientConnection->handleGetRequest(clientConnection, buf, BUFFER_SIZE, cache, MAX_CACHE_SIZE,
                                                             localConnectionsCount, threadId,
                                                             listServerConnection);
@@ -254,7 +254,7 @@ void updateServers(NodeServerConnection **listServerConnections, int threadId, i
 
     while (iterServerConnectionNode != NULL) {
         ServerConnection *serverConnection = iterServerConnectionNode->connection;
-        if (serverConnection->state == CACHING && (serverConnection->fd->revents & POLLIN)) {
+        if (serverConnection->state == CACHING) {
             int result = serverConnection->caching(serverConnection, &cache[serverConnection->cacheIndex], buf, BUFFER_SIZE);
             if (result != EXIT_SUCCESS) {
                 iterServerConnectionNode = iterServerConnectionNode->next;
@@ -270,7 +270,7 @@ void updateServers(NodeServerConnection **listServerConnections, int threadId, i
             }
         }
         iterServerConnectionNode = iterServerConnectionNode->next;
-    }
+    }/**/
 }
 
 void *work(void *param) {
