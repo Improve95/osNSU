@@ -29,7 +29,7 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
 
         localNumChunks = cache[self->cacheIndex].numChunks;
 
-        /*while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
+        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
             printf("thread %d: chunksMutex pthread_cond_wait before in handle...\n", threadId);
             pthread_cond_wait(&cache[self->cacheIndex].chunksCondVar, &cache[self->cacheIndex].chunksMutex);
 //            printf("chunksMutex pthread_cond_wait after in handle\n");
@@ -40,7 +40,7 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
                 return WRITER_CACHE_INVALID_EXCEPTION;
             }
             localNumChunks = cache[self->cacheIndex].numChunks;
-        }*/
+        }
 
         pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
         if (sendNewChunksToClient(self, localNumChunks) == -1) {
@@ -50,6 +50,7 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
         self->numChunksWritten = localNumChunks;
 
         if (localCacheStatus == VALID && self->numChunksWritten == cache[self->cacheIndex].numChunks) {
+            removeReader(&cache[self->cacheIndex]);
             return SUCCESS_WITH_END;
         }
     } else {

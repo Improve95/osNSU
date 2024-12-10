@@ -52,60 +52,6 @@ void signalHandler(int sig) {
     pthread_cond_broadcast(&socketsQueue->condVar);
 }
 
-int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConnection *servers) {
-    int counter = 0;
-    NodeClientConnection *iterClients = clients;
-    NodeServerConnection *iterServers = servers;
-    while (iterClients != NULL) {
-        ClientConnection *clientConnection = iterClients->connection;
-        fds[counter].fd = clientConnection->clientSocket;
-        if (clientConnection->state == WAITING_REQUEST) {
-            fds[counter].events = POLLIN;
-        } else {
-            fds[counter].events = POLLOUT;
-        }
-        clientConnection->fd = &fds[counter];
-        iterClients = iterClients->next;
-        counter++;
-    }
-    while (iterServers != NULL) {
-        ServerConnection *serverConnection = iterServers->connection;
-        if (serverConnection->state == REQUEST_SENDING) {
-            fds[counter].events = POLLOUT;
-        } else {
-            fds[counter].events = POLLIN;
-        }
-        fds[counter].fd = serverConnection->serverSocket;
-        iterServers = iterServers->next;
-        counter++;
-    }
-    return counter;
-}
-
-int getNewClientSocket(int *localConnectionsCount) {
-    int newClientSocket = -1;
-    //printf("Thread: %d, %s\n", threadId,"queueMutex lock...\n");
-    pthread_mutex_lock(&socketsQueue->queueMutex);
-    if (!isEmpty(socketsQueue) && isRun == 1) {
-
-        newClientSocket = getSocketFromQueue(socketsQueue);
-        if (newClientSocket != -1) {
-            (*localConnectionsCount)++;
-        }
-    }
-
-    while (*localConnectionsCount == 0 && isEmpty(socketsQueue) && isRun == 1) {
-        pthread_cond_wait(&socketsQueue->condVar, &socketsQueue->queueMutex);
-        newClientSocket = getSocketFromQueue(socketsQueue);
-        if (newClientSocket != -1) {
-            (*localConnectionsCount)++;
-        }
-
-    }
-    pthread_mutex_unlock(&socketsQueue->queueMutex);
-    return newClientSocket;
-}
-
 void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientConnection **list,
                          ClientConnection *clientConnection, int threadId) {
     printf("Thread: %d, Connection %d, %s\n", threadId, clientConnection->id, reason);
@@ -209,6 +155,60 @@ void handleGetException(int result, NodeClientConnection **list, ClientConnectio
     }
 }
 
+int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConnection *servers) {
+    int counter = 0;
+    NodeClientConnection *iterClients = clients;
+    NodeServerConnection *iterServers = servers;
+    while (iterClients != NULL) {
+        ClientConnection *clientConnection = iterClients->connection;
+        fds[counter].fd = clientConnection->clientSocket;
+        if (clientConnection->state == WAITING_REQUEST) {
+            fds[counter].events = POLLIN;
+        } else {
+            fds[counter].events = POLLOUT;
+        }
+        clientConnection->fd = &fds[counter];
+        iterClients = iterClients->next;
+        counter++;
+    }
+    while (iterServers != NULL) {
+        ServerConnection *serverConnection = iterServers->connection;
+        if (serverConnection->state == REQUEST_SENDING) {
+            fds[counter].events = POLLOUT;
+        } else {
+            fds[counter].events = POLLIN;
+        }
+        fds[counter].fd = serverConnection->serverSocket;
+        iterServers = iterServers->next;
+        counter++;
+    }
+    return counter;
+}
+
+int getNewClientSocket(int *localConnectionsCount) {
+    int newClientSocket = -1;
+    //printf("Thread: %d, %s\n", threadId,"queueMutex lock...\n");
+    pthread_mutex_lock(&socketsQueue->queueMutex);
+    if (!isEmpty(socketsQueue) && isRun == 1) {
+
+        newClientSocket = getSocketFromQueue(socketsQueue);
+        if (newClientSocket != -1) {
+            (*localConnectionsCount)++;
+        }
+    }
+
+    while (*localConnectionsCount == 0 && isEmpty(socketsQueue) && isRun == 1) {
+        pthread_cond_wait(&socketsQueue->condVar, &socketsQueue->queueMutex);
+        newClientSocket = getSocketFromQueue(socketsQueue);
+        if (newClientSocket != -1) {
+            (*localConnectionsCount)++;
+        }
+
+    }
+    pthread_mutex_unlock(&socketsQueue->queueMutex);
+    return newClientSocket;
+}
+
 void updateClients(NodeClientConnection **listClientsConnections, NodeServerConnection **listServerConnection,
                    int threadId, int *localConnectionsCount) {
 
@@ -269,7 +269,7 @@ void updateServers(NodeServerConnection **listServerConnections, int threadId, i
             }
         }
         iterServerConnectionNode = iterServerConnectionNode->next;
-    }/**/
+    }
 }
 
 void *work(void *param) {

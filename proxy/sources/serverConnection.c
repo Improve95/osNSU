@@ -1,7 +1,5 @@
 #include <stdbool.h>
 #include "../headers/serverConnection.h"
-#include "../headers/cache.h"
-#include "../headers/httpService.h"
 
 bool isFirstCacheChunk(CacheEntry *cache) {
     return getCacheStatus(cache) == DOWNLOADING && getCacheRecvSize(cache) == 0;

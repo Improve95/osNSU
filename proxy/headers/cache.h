@@ -38,7 +38,7 @@ int getCacheAllSize(CacheEntry *cacheInfo);
 
 void setCacheAllSize(CacheEntry *cacheInfo, int allSize);
 
-int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData, int threadId);
+int putDataToCache(CacheEntry *cacheInfo, char *newData, int lengthNewData, int threadId);
 
 void addReader(CacheEntry *cacheInfo);
 

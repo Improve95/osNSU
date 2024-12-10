@@ -118,23 +118,27 @@ void destroyCache(CacheEntry *cache, const int maxCacheSize) {
 //    printf("destroy cache\n");
 }
 
-int putDataToCache(CacheEntry *cacheChunk, char *newData, int lengthNewData, int threadId) {
-    pushDataCacheBack(cacheChunk->data, newData, lengthNewData);
-    cacheChunk->recvSize += lengthNewData;
+int putDataToCache(CacheEntry *cacheInfo, char *newData, int lengthNewData, int threadId) {
+    pushDataCacheBack(cacheInfo->data, newData, lengthNewData);
+    cacheInfo->recvSize += lengthNewData;
 //    printf("thread %d: putDataToCache: chunksMutex...\n", threadId);
-    pthread_mutex_lock(&cacheChunk->chunksMutex);
-    cacheChunk->numChunks++;
-    pthread_mutex_unlock(&cacheChunk->chunksMutex);
+    pthread_mutex_lock(&cacheInfo->chunksMutex);
+    cacheInfo->numChunks++;
+    pthread_mutex_unlock(&cacheInfo->chunksMutex);
 //    printf("putDataToCache: chunksMutex\n");
     return 0;
 }
 
 void addReader(CacheEntry *cacheInfo) {
-
+    pthread_mutex_lock(&cacheInfo->mutex);
+    cacheInfo->readers += 1;
+    pthread_mutex_unlock(&cacheInfo->mutex );
 }
 
 void removeReader(CacheEntry *cacheInfo) {
-
+    pthread_mutex_lock(&cacheInfo->mutex);
+    cacheInfo->readers -= 1;
+    pthread_mutex_unlock(&cacheInfo->mutex);
 }
 
 void setCacheStatus(CacheEntry *cacheInfo, CacheStatus status) {
