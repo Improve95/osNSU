@@ -44,7 +44,7 @@ int caching(ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferS
         printf("Responce:%s\n", (char *) buf);
         setCacheAllSize(cache, (size_t) (contentLength + body));
     }
-//    sleep(1);
+
     if (putDataToCache(cache, buf, readCount, threadId) == -1) {
         broadcastWaitingCacheClients(cache);
         return PUT_CACHE_DATA_EXCEPTION;

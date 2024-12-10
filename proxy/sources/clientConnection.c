@@ -90,8 +90,8 @@ int handleGetMethod(ClientConnection *clientConnection, char *url, CacheEntry *c
         clientConnection->curData = &cache[urlInCacheResult].data->head;
     } else {
         int freeCacheIndex;
-        if (-1 != (freeCacheIndex = searchNotUsingCacheConcurrent(url, cache, maxCacheSize, threadId)) ||
-            -1 != (freeCacheIndex = searchFreeCacheConcurrent(url, cache, maxCacheSize, threadId))) {
+        if (-1 != (freeCacheIndex = searchFreeCacheConcurrent(url, cache, maxCacheSize, threadId)) ||
+            -1 != (freeCacheIndex = searchNotUsingCacheConcurrent(url, cache, maxCacheSize, threadId))) {
 
             int serverSocket = getServerSocketBy(url);
             if (serverSocket == -1) {

@@ -26,6 +26,8 @@ struct cache_entry {
     pthread_mutex_t chunksMutex;
     char *url;
     CacheStatus status;
+
+    time_t lastGetTime;
 } typedef CacheEntry;
 
 void setCacheStatus(CacheEntry *cacheInfo, CacheStatus status);

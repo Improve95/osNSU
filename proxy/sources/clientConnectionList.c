@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "../headers/clientConnectionList.h"
+#include "../headers/cache.h"
 
 void pushClientConnectionBack(NodeClientConnection **head, ClientConnection *connection){
     while (*head) {
@@ -40,6 +41,8 @@ void deleteClientConnectionById(NodeClientConnection **head, int key) {
     prev->next = temp->next;
 
     closeClientConnection(temp->connection);
+//    removeReader();
+//    temp->connection->cacheIndex
     free(temp);
 }
 

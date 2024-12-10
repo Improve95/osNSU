@@ -10,13 +10,14 @@
 #include "headers/threadPool.h"
 #include "headers/cache.h"
 #include "headers/serverSocketService.h"
+#include <time.h>
 
 #define MAX_CONNECTIONS 100
-#define MAX_CACHE_SIZE 3 * 1024
+#define MAX_CACHE_SIZE 5
 #define BUFFER_SIZE 16 * 1024
 #define MAX_NUM_TRANSLATION_CONNECTIONS 100
-
-//3 = CRLF EOF
+#define GARBAGE_COLLECTOR_CHECK_PERIOD 2
+#define CACHE_INFO_TTL (GARBAGE_COLLECTOR_CHECK_PERIOD * 3)
 
 Queue *socketsQueue;
 int poolSize;
@@ -155,6 +156,26 @@ void handleGetException(int result, NodeClientConnection **list, ClientConnectio
     }
 }
 
+void *garbageCollectorRoutine(void *args) {
+    while (isRun) {
+        for (size_t i = 0; i < MAX_CACHE_SIZE; i++) {
+            CacheEntry cacheInfo = cache[i];
+            pthread_mutex_lock(&cacheInfo.mutex);
+            time_t nowTime = time(NULL);
+            if (cacheInfo.status == VALID &&
+                cacheInfo.readers <= 0 && nowTime - cacheInfo.lastGetTime >= CACHE_INFO_TTL) {
+                cacheInfo.status = INVALID;
+//                free(cacheInfo.url);
+                printf("gb deleted cache\n");
+            }
+//            printf("gb: readers: %ld, status %d\n", cacheInfo.readers, cacheInfo.status);
+            pthread_mutex_unlock(&cacheInfo.mutex);
+        }
+        sleep(GARBAGE_COLLECTOR_CHECK_PERIOD);
+    }
+    return NULL;
+}
+
 int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConnection *servers) {
     int counter = 0;
     NodeClientConnection *iterClients = clients;
@@ -272,9 +293,9 @@ void updateServers(NodeServerConnection **listServerConnections, int threadId, i
     }
 }
 
-void *work(void *param) {
+void *work(void *args) {
 
-    int threadId = *((int *) param);
+    int threadId = *((int *) args);
     printf("START:id: %d\n", threadId);
 
     int localConnectionsCount = 0;
@@ -340,11 +361,17 @@ int main(int argc, const char *argv[]) {
         pthread_exit(NULL);
     }
 
+    pthread_t gbThread;
+    if (pthread_create(&gbThread, NULL, garbageCollectorRoutine, NULL)) {
+        pthread_exit(NULL);
+    }
+
     while (true) {
         int newClientSocket = acceptPollWrapper(&proxyFds, proxySocket, 1);
         printf("acceptPollWrapper=%d\n",newClientSocket);
         if (sigCaptured) {
             joinThreadPool(poolThreads, poolSize);
+            pthread_join(gbThread, NULL);
             break;
         }
 
