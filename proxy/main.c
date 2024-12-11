@@ -13,7 +13,7 @@
 #include <time.h>
 
 #define MAX_CONNECTIONS 100
-#define MAX_CACHE_SIZE 5
+#define MAX_CACHE_SIZE 20
 #define BUFFER_SIZE 16 * 1024
 #define MAX_NUM_TRANSLATION_CONNECTIONS 100
 #define GARBAGE_COLLECTOR_CHECK_PERIOD 2
@@ -157,19 +157,20 @@ void handleGetException(int result, NodeClientConnection **list, ClientConnectio
 }
 
 void *garbageCollectorRoutine(void *args) {
-    while (isRun) {
+    while (0) {
+//        printf("\n");
         for (size_t i = 0; i < MAX_CACHE_SIZE; i++) {
-            CacheEntry cacheInfo = cache[i];
-            pthread_mutex_lock(&cacheInfo.mutex);
+            CacheEntry *cacheInfo = &cache[i];
+            pthread_mutex_lock(&cacheInfo->mutex);
             time_t nowTime = time(NULL);
-            if (cacheInfo.status == VALID &&
-                cacheInfo.readers <= 0 && nowTime - cacheInfo.lastGetTime >= CACHE_INFO_TTL) {
-                cacheInfo.status = INVALID;
-//                free(cacheInfo.url);
+//            printf("gb: readers: %ld, status %d\n", cacheInfo->readers, cacheInfo->status);
+            if (cacheInfo->status == VALID &&
+                cacheInfo->readers <= 0 && nowTime - cacheInfo->lastGetTime >= CACHE_INFO_TTL) {
+                cacheInfo->status = INVALID;
+//                free(cacheInfo->url);
                 printf("gb deleted cache\n");
             }
-//            printf("gb: readers: %ld, status %d\n", cacheInfo.readers, cacheInfo.status);
-            pthread_mutex_unlock(&cacheInfo.mutex);
+            pthread_mutex_unlock(&cacheInfo->mutex);
         }
         sleep(GARBAGE_COLLECTOR_CHECK_PERIOD);
     }
@@ -368,7 +369,6 @@ int main(int argc, const char *argv[]) {
 
     while (true) {
         int newClientSocket = acceptPollWrapper(&proxyFds, proxySocket, 1);
-        printf("acceptPollWrapper=%d\n",newClientSocket);
         if (sigCaptured) {
             joinThreadPool(poolThreads, poolSize);
             pthread_join(gbThread, NULL);

@@ -30,13 +30,10 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
         localNumChunks = cache[self->cacheIndex].numChunks;
 
         while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
-            printf("thread %d: chunksMutex pthread_cond_wait before in handle...\n", threadId);
             pthread_cond_wait(&cache[self->cacheIndex].chunksCondVar, &cache[self->cacheIndex].chunksMutex);
-//            printf("chunksMutex pthread_cond_wait after in handle\n");
             localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
             if (localCacheStatus == INVALID) {
                 pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
-//                printf("chunksMutex WRITER_CACHE_INVALID_EXCEPTION before in handle\n");
                 return WRITER_CACHE_INVALID_EXCEPTION;
             }
             localNumChunks = cache[self->cacheIndex].numChunks;
@@ -50,7 +47,7 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
         self->numChunksWritten = localNumChunks;
 
         if (localCacheStatus == VALID && self->numChunksWritten == cache[self->cacheIndex].numChunks) {
-            removeReader(&cache[self->cacheIndex]);
+//            removeReader(&cache[self->cacheIndex]);
             return SUCCESS_WITH_END;
         }
     } else {
@@ -120,7 +117,7 @@ int handleGetRequest(ClientConnection *self, char *buffer, int bufferSize, Cache
                      int *localConnectionsCount, int threadId, NodeServerConnection **listServerConnections) {
 
     ssize_t readCount = recv(self->clientSocket, buffer, bufferSize, 0);
-    printf("handleGetRequest:%s\n", buffer);
+//    printf("handleGetRequest:%s\n", buffer);
     if (readCount <= 0) { return RECV_CLIENT_EXCEPTION; }
     if (readCount > 3) {
         char *url = getUrlFromData(buffer);

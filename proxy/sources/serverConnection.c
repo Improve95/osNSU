@@ -35,13 +35,12 @@ int caching(ServerConnection *self, CacheEntry *cache, void *buf, size_t bufferS
         long contentLength = getContentLengthFromAnswer(dest);
 
         if (statusCode != 200 || (contentLength == -1 && body == -1)) {
-            printf("status=%d\n",statusCode);
-            printf("contentLength=%ld\n",contentLength);
-            printf("body=%d\n",body);
+//            printf("status=%d\n", statusCode);
+            printf("receive ans from server: contentLength: %ld\n", contentLength);
+//            printf("body=%d\n", body);
             broadcastWaitingCacheClients(cache);
             return STATUS_OR_CONTENT_LENGTH_EXCEPTION;
         }
-        printf("Responce:%s\n", (char *) buf);
         setCacheAllSize(cache, (size_t) (contentLength + body));
     }
 

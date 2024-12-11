@@ -4,25 +4,18 @@
 
 int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
     for (int j = 0; j < cacheSize; j++) {
-//        printf("searchUrlInCacheConcurrent lock...\n");
         pthread_mutex_lock(&cache[j].mutex);
-
-        CacheEntry cacheInfo = cache[j];
-
         if (cache[j].url != NULL && strcmp(cache[j].url, url) == 0) {
             if (cache[j].status == VALID || cache[j].status == DOWNLOADING) {
                 cache[j].readers++;
                 cache[j].lastGetTime = time(NULL);
                 pthread_mutex_unlock(&cache[j].mutex);
-//                printf("searchUrlInCacheEND\n");
                 return j;
             }
 
             pthread_mutex_unlock(&cache[j].mutex);
-            // infoPrintf("searchUrlInCacheEND");
         } else {
             pthread_mutex_unlock(&cache[j].mutex);
-            // infoPrintf("searchUrlInCacheEND ");
         }
     }
     return -1;
@@ -30,10 +23,8 @@ int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
 
 int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
-//        printf("searchFreeCacheConcurrent lock...\n");
         pthread_mutex_lock(&cache[j].mutex);
         if (cache[j].url == NULL) {
-//            printf("(%d)SEARCH_CACHE: found free cache id=%d\n", threadId, j);
             cache[j].readers = 1;
             cache[j].lastGetTime = time(NULL);
             cache[j].status = DOWNLOADING;
@@ -44,12 +35,11 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
             cache[j].url = (char *) malloc(sizeof(char) * strlen(url) + 1);
             memcpy(cache[j].url, url, sizeof(char) * strlen(url) + 1);
 
+            printf("found free cache\n");
             pthread_mutex_unlock(&cache[j].mutex);
-//            printf("searchFreeCacheAndSetDownloadingStateEND\n");
             return j;
         } else {
             pthread_mutex_unlock(&cache[j].mutex);
-//            printf("searchFreeCacheAndSetDownloadingStateEND\n");
         }
     }
     return -1;
@@ -57,12 +47,9 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
 
 int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int threadId) {
     for (int j = 0; j < cacheSize; j++) {
-//        printf("searchNotUsingCacheConcurrent...\n");
         pthread_mutex_lock(&cache[j].mutex);
 
         if (cache[j].status == INVALID) {
-            perror("found not using cache");
-//            printf("thread (%d) search_cache: found not using cache id=%d", threadId, j);
             cache[j].readers = 1;
             cache[j].lastGetTime = time(NULL);
             cache[j].status = DOWNLOADING;
@@ -76,12 +63,11 @@ int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, i
             cache[j].url = (char *) malloc(sizeof(char) * sizeof(url));
             memcpy(cache[j].url, url, sizeof(char) * sizeof(url));
 
+            printf("found not using cache\n");
             pthread_mutex_unlock(&cache[j].mutex);
-//            printf("searchNotUsingCacheConcurrent\n");
             return j;
         } else {
             pthread_mutex_unlock(&cache[j].mutex);
-//            printf("searchNotUsingCacheEND\n");
         }
     }
     return -1;
@@ -123,17 +109,14 @@ void destroyCache(CacheEntry *cache, const int maxCacheSize) {
 
         free(cache[i].url);
     }
-//    printf("destroy cache\n");
 }
 
 int putDataToCache(CacheEntry *cacheInfo, char *newData, int lengthNewData, int threadId) {
     pushDataCacheBack(cacheInfo->data, newData, lengthNewData);
     cacheInfo->recvSize += lengthNewData;
-//    printf("thread %d: putDataToCache: chunksMutex...\n", threadId);
     pthread_mutex_lock(&cacheInfo->chunksMutex);
     cacheInfo->numChunks++;
     pthread_mutex_unlock(&cacheInfo->chunksMutex);
-//    printf("putDataToCache: chunksMutex\n");
     return 0;
 }
 
@@ -147,20 +130,16 @@ void removeReader(CacheEntry *cacheInfo) {
 }
 
 void setCacheStatus(CacheEntry *cacheInfo, CacheStatus status) {
-//    printf("setCacheStatus...\n");
     pthread_mutex_lock(&cacheInfo->mutex);
     cacheInfo->status = status;
     pthread_mutex_unlock(&cacheInfo->mutex);
-//    printf("setCacheStatusEND\n");
 }
 
 CacheStatus getCacheStatus(CacheEntry *cacheInfo) {
-//    printf("getCacheStatus\n");
     CacheStatus returnStatus;
     pthread_mutex_lock(&cacheInfo->mutex);
     returnStatus = cacheInfo->status;
     pthread_mutex_unlock(&cacheInfo->mutex);
-//    printf("getCacheStatusEND\n");
     return returnStatus;
 }
 

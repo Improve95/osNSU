@@ -2,7 +2,6 @@
 
 char *createGet(char *url, size_t *len) {
 
-    //printf("URL=%s\n",url);
     //protocol
     char *afterProtocol = strstr(url, "://");
     if (NULL == afterProtocol) {
@@ -25,7 +24,6 @@ char *createGet(char *url, size_t *len) {
     //---------------------------------------------Send request
 
     char format[] = "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n\0";
-    //printf("format size = %d",sizeof(format));
 
     char *buffer;
     if (NULL == afterHost) {
@@ -35,11 +33,9 @@ char *createGet(char *url, size_t *len) {
     } else {
         buffer = (char *) malloc(sizeof(char) * (27 + strlen(afterHost) + sizeof(hostName)));
         *len = 27 + strlen(afterHost) + sizeof(hostName);
-        //printf("LEN=%d",*len);
         sprintf(buffer, format, afterHost, hostName);
     }
 
-    //printf("newGetMethod = (%s)\n", buffer);
     return buffer;
 }
 
@@ -58,7 +54,7 @@ char *getUrlFromData(char *httpData) {
 
     char *result = (char *) malloc(sizeof(char) * (endSmth - smth + 1));
     if (result == NULL) {
-        printf("ERROR WHILE MALLOC getUrlFromData");
+        return NULL;
     }
 
     memcpy(result, smth, (size_t) (endSmth - smth));
@@ -73,14 +69,12 @@ char *getHostFromUrl(char *sH) {
 
     char *result = (char *) malloc(sizeof(char) * (endHost - startHost + 1));
     if (NULL == result) {
-        printf("ERROR WHILE MALLOC getHostFromUrl");
         return NULL;
     }
 
     memcpy(result, startHost, (size_t) (endHost - startHost));
     result[endHost - startHost] = '\0';
 
-    //printf("Host:%s\n", result);
     return result;
 }
 
@@ -111,7 +105,6 @@ long getContentLengthFromAnswer(char *httpData) {
     if (StrAfterLength == startLength || contentLength <= 0) {
         return -1;
     }
-    //printf("ContLength = %d\n", contentLength);
     return contentLength;
 }
 
@@ -131,7 +124,6 @@ int getServerSocketBy(char *url) {
     struct hostent *hostInfo = gethostbyname(host);
 
     if (NULL == hostInfo) {
-        fprintf(stderr, "Cannot get host by name\n");
         return -1;
     }
 
