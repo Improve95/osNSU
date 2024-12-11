@@ -16,8 +16,8 @@
 #define MAX_CACHE_SIZE 5
 #define BUFFER_SIZE 16 * 1024
 #define MAX_NUM_TRANSLATION_CONNECTIONS 100
-#define GARBAGE_COLLECTOR_CHECK_PERIOD 10
-#define CACHE_INFO_TTL 30
+#define GARBAGE_COLLECTOR_CHECK_PERIOD 5
+#define CACHE_INFO_TTL 10
 
 Queue *socketsQueue;
 int poolSize;
@@ -56,8 +56,6 @@ void signalHandler(int sig) {
 void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientConnection **list,
                          ClientConnection *clientConnection, int threadId) {
     printf("Thread: %d, Connection %d, %s\n", threadId, clientConnection->id, reason);
-    size_t cacheIndex = clientConnection->cacheIndex;
-    removeReader(&cache[cacheIndex]);
     deleteClientConnectionById(list, clientConnection->id);
     (*localConnectCount)--;
 }
@@ -116,6 +114,7 @@ void handleSendingFromCacheException(int result, NodeClientConnection **list, Cl
             break;
         }
         case SUCCESS_WITH_END: {
+            removeReader(&cache[clientConnection->cacheIndex]);
             removeClientWrapper("READ_FROM_CACHE_WRITE_CLIENT:SUCCESS", localConnectCount,
                                 list, clientConnection, threadId);
             break;
@@ -169,7 +168,9 @@ void *garbageCollectorRoutine(void *args) {
             if (cacheInfo->status == VALID &&
                 cacheInfo->readers <= 0 && nowTime - cacheInfo->lastGetTime >= CACHE_INFO_TTL) {
                 cacheInfo->status = INVALID;
-//                free(cacheInfo->url);
+                cacheInfo->readers = 0;
+                free(cacheInfo->url);
+                cacheInfo->url = NULL;
                 printf("gb deleted cache\n");
             }
             pthread_mutex_unlock(&cacheInfo->mutex);
