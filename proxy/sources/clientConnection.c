@@ -47,7 +47,6 @@ int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnectio
         self->numChunksWritten = localNumChunks;
 
         if (localCacheStatus == VALID && self->numChunksWritten == cache[self->cacheIndex].numChunks) {
-//            removeReader(&cache[self->cacheIndex]);
             return SUCCESS_WITH_END;
         }
     } else {

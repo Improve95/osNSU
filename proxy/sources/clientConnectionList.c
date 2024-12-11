@@ -41,8 +41,6 @@ void deleteClientConnectionById(NodeClientConnection **head, int key) {
     prev->next = temp->next;
 
     closeClientConnection(temp->connection);
-//    removeReader();
-//    temp->connection->cacheIndex
     free(temp);
 }
 

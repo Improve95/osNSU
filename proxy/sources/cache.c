@@ -7,8 +7,8 @@ int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
         pthread_mutex_lock(&cache[j].mutex);
         if (cache[j].url != NULL && strcmp(cache[j].url, url) == 0) {
             if (cache[j].status == VALID || cache[j].status == DOWNLOADING) {
-                cache[j].readers++;
                 cache[j].lastGetTime = time(NULL);
+                cache[j].readers++;
                 pthread_mutex_unlock(&cache[j].mutex);
                 return j;
             }
@@ -25,10 +25,10 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
     for (int j = 0; j < cacheSize; j++) {
         pthread_mutex_lock(&cache[j].mutex);
         if (cache[j].url == NULL) {
-            cache[j].readers = 1;
             cache[j].lastGetTime = time(NULL);
-            cache[j].status = DOWNLOADING;
             cache[j].data = initDataCacheList();
+            cache[j].status = DOWNLOADING;
+            cache[j].readers = 1;
             cache[j].numChunks = 0;
             cache[j].allSize = 0;
             cache[j].recvSize = 0;
@@ -50,10 +50,10 @@ int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, i
         pthread_mutex_lock(&cache[j].mutex);
 
         if (cache[j].status == INVALID) {
-            cache[j].readers = 1;
             cache[j].lastGetTime = time(NULL);
-            cache[j].status = DOWNLOADING;
             cache[j].data = initDataCacheList();
+            cache[j].status = DOWNLOADING;
+            cache[j].readers = 1;
             cache[j].numChunks = 0;
             cache[j].allSize = 0;
             cache[j].recvSize = 0;
@@ -122,10 +122,8 @@ int putDataToCache(CacheEntry *cacheInfo, char *newData, int lengthNewData, int 
 
 void removeReader(CacheEntry *cacheInfo) {
     pthread_mutex_lock(&cacheInfo->mutex);
+    printf("remove reader\n");
     cacheInfo->readers -= 1;
-    if (cacheInfo->readers <= 0) {
-        cacheInfo->readers = 0;
-    }
     pthread_mutex_unlock(&cacheInfo->mutex);
 }
 

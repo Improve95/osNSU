@@ -13,11 +13,11 @@
 #include <time.h>
 
 #define MAX_CONNECTIONS 100
-#define MAX_CACHE_SIZE 20
+#define MAX_CACHE_SIZE 5
 #define BUFFER_SIZE 16 * 1024
 #define MAX_NUM_TRANSLATION_CONNECTIONS 100
-#define GARBAGE_COLLECTOR_CHECK_PERIOD 2
-#define CACHE_INFO_TTL (GARBAGE_COLLECTOR_CHECK_PERIOD * 3)
+#define GARBAGE_COLLECTOR_CHECK_PERIOD 10
+#define CACHE_INFO_TTL 30
 
 Queue *socketsQueue;
 int poolSize;
@@ -56,6 +56,8 @@ void signalHandler(int sig) {
 void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientConnection **list,
                          ClientConnection *clientConnection, int threadId) {
     printf("Thread: %d, Connection %d, %s\n", threadId, clientConnection->id, reason);
+    size_t cacheIndex = clientConnection->cacheIndex;
+    removeReader(&cache[cacheIndex]);
     deleteClientConnectionById(list, clientConnection->id);
     (*localConnectCount)--;
 }
@@ -157,13 +159,13 @@ void handleGetException(int result, NodeClientConnection **list, ClientConnectio
 }
 
 void *garbageCollectorRoutine(void *args) {
-    while (0) {
-//        printf("\n");
+    while (isRun) {
+        printf("\n");
         for (size_t i = 0; i < MAX_CACHE_SIZE; i++) {
             CacheEntry *cacheInfo = &cache[i];
             pthread_mutex_lock(&cacheInfo->mutex);
             time_t nowTime = time(NULL);
-//            printf("gb: readers: %ld, status %d\n", cacheInfo->readers, cacheInfo->status);
+            printf("gb: readers: %ld, status %d\n", cacheInfo->readers, cacheInfo->status);
             if (cacheInfo->status == VALID &&
                 cacheInfo->readers <= 0 && nowTime - cacheInfo->lastGetTime >= CACHE_INFO_TTL) {
                 cacheInfo->status = INVALID;
@@ -209,7 +211,6 @@ int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConn
 
 int getNewClientSocket(int *localConnectionsCount) {
     int newClientSocket = -1;
-    //printf("Thread: %d, %s\n", threadId,"queueMutex lock...\n");
     pthread_mutex_lock(&socketsQueue->queueMutex);
     if (!isEmpty(socketsQueue) && isRun == 1) {
 
