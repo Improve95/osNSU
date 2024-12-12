@@ -21,11 +21,11 @@ enum server_state {
 } typedef ServerState;
 
 struct server_connection {
-
     int serverSocket;
     int cacheIndex;
     int id;
     ServerState state;
+    struct pollfd *fd;
 
     int (*sendRequest)(struct server_connection *self, char *data, int dataSize);
 

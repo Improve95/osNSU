@@ -35,7 +35,7 @@ int searchFreeCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, int t
             cache[j].url = (char *) malloc(sizeof(char) * strlen(url) + 1);
             memcpy(cache[j].url, url, sizeof(char) * strlen(url) + 1);
 
-            printf("found free cache\n");
+//            printf("found free cache\n");
             pthread_mutex_unlock(&cache[j].mutex);
             return j;
         } else {
@@ -122,7 +122,7 @@ int putDataToCache(CacheEntry *cacheInfo, char *newData, int lengthNewData, int 
 
 void removeReader(CacheEntry *cacheInfo) {
     pthread_mutex_lock(&cacheInfo->mutex);
-    printf("remove reader\n");
+//    printf("remove reader\n");
     cacheInfo->readers -= 1;
     pthread_mutex_unlock(&cacheInfo->mutex);
 }
