@@ -8,16 +8,13 @@
 #include "cache.h"
 #include "httpService.h"
 
-#define ALLOCATE_ERROR_EXCEPTION -5;
-
-
 #define RECV_FROM_SERVER_EXCEPTION -2
 #define SERVER_CLOSED_EXCEPTION -3
 #define STATUS_OR_CONTENT_LENGTH_EXCEPTION -4
 #define NOT_FREE_CACHE_EXCEPTION -6
 #define PUT_CACHE_DATA_EXCEPTION -7
-
 #define END_READING_PROCCESS 1
+
 enum server_state {
     REQUEST_SENDING,
     CACHING
@@ -40,4 +37,4 @@ ServerConnection *initServerConnection(int serverSocket, int cacheIndex);
 
 int closeServerConnection(ServerConnection *self);
 
-#endif //SERVERCONNECTION_H
+#endif

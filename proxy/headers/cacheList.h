@@ -24,4 +24,4 @@ NodeCacheData *getCacheNode(ListCacheData *list, int n);
 
 void freeList(ListCacheData *list);
 
-#endif //CACHELIST_H
+#endif
