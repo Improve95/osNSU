@@ -254,7 +254,7 @@ void updateClients(NodeClientConnection **listClientsConnections, NodeServerConn
                 handleGetException(result, listClientsConnections, clientConnection, threadId, localConnectionsCount);
                 continue;
             }
-        } else if (clientConnection->state == SENDING_FROM_CACHE && (clientConnection->fd->revents & POLLOUT)) {
+        } else if (clientConnection->state == SENDING_FROM_CACHE && (clientConnection->fd->revents & POLLOUT) != 0) {
             int result = clientConnection->sendFromCache(clientConnection, cache, localConnectionsCount, threadId);
             if (result != 0) {
 //                printf("sending from cache exception\n");

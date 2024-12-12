@@ -9,10 +9,10 @@ int searchUrlInCacheConcurrent(char *url, CacheEntry *cache, int cacheSize) {
             if (cache[j].status == VALID || cache[j].status == DOWNLOADING) {
                 cache[j].lastGetTime = time(NULL);
                 cache[j].readers++;
+//                printf("found exits url\n");
                 pthread_mutex_unlock(&cache[j].mutex);
                 return j;
             }
-
             pthread_mutex_unlock(&cache[j].mutex);
         } else {
             pthread_mutex_unlock(&cache[j].mutex);
@@ -57,7 +57,6 @@ int searchNotUsingCacheConcurrent(char *url, CacheEntry *cache, int cacheSize, i
             cache[j].numChunks = 0;
             cache[j].allSize = 0;
             cache[j].recvSize = 0;
-
             freeList(cache[j].data);
             free(cache[j].url);
             cache[j].url = (char *) malloc(sizeof(char) * sizeof(url));
