@@ -4,7 +4,7 @@ int sendNewChunksToClient(ClientConnection *connection, size_t newSize, size_t *
     NodeCacheData *cacheData = *connection->curData;
     int counter = connection->numChunksWritten;
 
-    while (cacheData != NULL && (counter < newSize)) {
+    while (cacheData != NULL && (counter < newSize) && (*chunksWritten) <= 10) {
         ssize_t bytesWritten = send(connection->clientSocket, cacheData->data, cacheData->lengthData, MSG_DONTWAIT);
         if (bytesWritten <= 0) {
             perror("Error client from cache sending");
@@ -18,6 +18,7 @@ int sendNewChunksToClient(ClientConnection *connection, size_t newSize, size_t *
 //        }
 
         counter++;
+        (*chunksWritten) += 1;
     }
 
     return 0;
@@ -25,33 +26,33 @@ int sendNewChunksToClient(ClientConnection *connection, size_t newSize, size_t *
 
 int sendFromCache(ClientConnection *self, CacheEntry *cache, int *localConnections, int threadId) {
     int localCacheStatus;
-    size_t localNumChunks;
+    size_t needToWriteChunks;
 
     localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
     if (localCacheStatus == VALID || localCacheStatus == DOWNLOADING) {
 //        printf("threadid %d: sendFromCache\n", threadId);
         pthread_mutex_lock(&cache[self->cacheIndex].chunksMutex);
 
-        localNumChunks = cache[self->cacheIndex].numChunks;
+        needToWriteChunks = cache[self->cacheIndex].numChunks;
 
-        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == localNumChunks && *localConnections == 1) {
+        while (localCacheStatus == DOWNLOADING && self->numChunksWritten == needToWriteChunks && *localConnections == 1) {
             pthread_cond_wait(&cache[self->cacheIndex].chunksCondVar, &cache[self->cacheIndex].chunksMutex);
             localCacheStatus = getCacheStatus(&cache[self->cacheIndex]);
             if (localCacheStatus == INVALID) {
                 pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
                 return WRITER_CACHE_INVALID_EXCEPTION;
             }
-            localNumChunks = cache[self->cacheIndex].numChunks;
+            needToWriteChunks = cache[self->cacheIndex].numChunks;
         }
 
         pthread_mutex_unlock(&cache[self->cacheIndex].chunksMutex);
         size_t currentChunkWritten = 0;
-        if (sendNewChunksToClient(self, localNumChunks, &currentChunkWritten, threadId) == -1) {
+        if (sendNewChunksToClient(self, needToWriteChunks, &currentChunkWritten, threadId) == -1) {
             return SEND_TO_CLIENT_EXCEPTION;
         }
         (&cache[self->cacheIndex])->lastGetTime = time(NULL);
 
-        self->numChunksWritten = localNumChunks;
+        self->numChunksWritten = currentChunkWritten;
 
         if (localCacheStatus == VALID && self->numChunksWritten == cache[self->cacheIndex].numChunks) {
             return SUCCESS_WITH_END;

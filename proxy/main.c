@@ -17,7 +17,7 @@
 #define BUFFER_SIZE 16 * 1024
 #define MAX_NUM_TRANSLATION_CONNECTIONS 100
 #define GARBAGE_COLLECTOR_CHECK_PERIOD 5
-#define CACHE_INFO_TTL 30
+#define CACHE_INFO_TTL 120
 
 Queue *socketsQueue;
 int poolSize;
@@ -220,7 +220,7 @@ int getNewClientSocket(int *localConnectionsCount, int threadId) {
     }
 
     while (*localConnectionsCount == 0 && isEmpty(socketsQueue) && isRun == 1) {
-        printf("threadId: %d, local: %d\n", threadId, *localConnectionsCount);
+//        printf("threadId: %d, local: %d\n", threadId, *localConnectionsCount);
         pthread_cond_wait(&socketsQueue->condVar, &socketsQueue->queueMutex);
         newClientSocket = getSocketFromQueue(socketsQueue);
         if (newClientSocket != -1) {
