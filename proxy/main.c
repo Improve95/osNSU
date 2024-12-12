@@ -208,7 +208,7 @@ int updatePoll(struct pollfd *fds, NodeClientConnection *clients, NodeServerConn
     return counter;
 }
 
-int getNewClientSocket(int *localConnectionsCount) {
+int getNewClientSocket(int *localConnectionsCount, int threadId) {
     int newClientSocket = -1;
     pthread_mutex_lock(&socketsQueue->queueMutex);
     if (!isEmpty(socketsQueue) && isRun == 1) {
@@ -220,6 +220,7 @@ int getNewClientSocket(int *localConnectionsCount) {
     }
 
     while (*localConnectionsCount == 0 && isEmpty(socketsQueue) && isRun == 1) {
+        printf("threadId: %d, local: %d\n", threadId, *localConnectionsCount);
         pthread_cond_wait(&socketsQueue->condVar, &socketsQueue->queueMutex);
         newClientSocket = getSocketFromQueue(socketsQueue);
         if (newClientSocket != -1) {
@@ -244,7 +245,7 @@ void updateClients(NodeClientConnection **listClientsConnections, NodeServerConn
             handleGetException(DEAD_CLIENT_EXCEPTION, listClientsConnections, clientConnection, threadId, localConnectionsCount);
             continue;
         }
-        if (clientConnection->state == WAITING_REQUEST && (clientConnection->fd->revents & POLLIN))  {
+        if (clientConnection->state == WAITING_REQUEST && (clientConnection->fd->revents & POLLIN) != 0)  {
             int result = clientConnection->handleGetRequest(clientConnection, buf, BUFFER_SIZE, cache, MAX_CACHE_SIZE,
                                                             localConnectionsCount, threadId,
                                                             listServerConnection);
@@ -307,7 +308,7 @@ void *work(void *args) {
     NodeServerConnection *listServerConnections = NULL;
 
     while (isRun == 1) {
-        int newClientSocket = getNewClientSocket(&localConnectionsCount);
+        int newClientSocket = getNewClientSocket(&localConnectionsCount, threadId);
         if (newClientSocket != -1) {
             ClientConnection *clientConnection = initClientConnection(newClientSocket);
             pushClientConnectionBack(&listClientConnections, clientConnection);
