@@ -55,7 +55,7 @@ void signalHandler(int sig) {
 
 void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientConnection **list,
                          ClientConnection *clientConnection, int threadId) {
-    printf("Thread: %d, %s\n", threadId, reason);
+    printf("threadId: %d, %s\n", threadId, reason);
     deleteClientConnectionById(list, clientConnection->id);
     (*localConnectCount)--;
 }
@@ -63,7 +63,7 @@ void removeClientWrapper(const char *reason, int *localConnectCount, NodeClientC
 void removeServerWrapper(const char *reason, int *localConnectCount, NodeServerConnection **list,
                          ServerConnection *serverConnection, int threadId) {
 
-    printf("Thread: %d, %s\n", threadId, reason);
+    printf("threadId: %d, %s\n", threadId, reason);
     deleteServerConnectionById(list, serverConnection->id);
     (*localConnectCount)--;
 }
@@ -72,33 +72,29 @@ void handleCachingException(int result, NodeServerConnection **listServers, Serv
                             int threadId, int *localConnects) {
 
     if (result == RECV_FROM_SERVER_EXCEPTION) {
-        printf("(%d) (%d)| READ_FROM_SERVER_WRITE_CLIENT:recv fron server err\n", threadId, serverConnection->id);
+        printf("handleCachingException threadId: %d: READ_FROM_SERVER_WRITE_CLIENT\n", threadId);
         makeCacheInvalid(&cache[serverConnection->cacheIndex]);
         removeServerWrapper("READ_FROM_SERVER_WRITE_CLIENT:recv fron server err",
                             localConnects, listServers, serverConnection, threadId);
     } else if (result == SERVER_CLOSED_EXCEPTION) {
         if (serverConnection->cacheIndex != -1) {
-            printf("(%d) (%d)| READ_FROM_SERVER_WRITE_CLIENT:INVALID CACHE\n", threadId, serverConnection->id);
+            printf("handleCachingException threadId: %d: SERVER_CLOSED_EXCEPTION\n", threadId);
             makeCacheInvalid(&cache[serverConnection->cacheIndex]);
         }
-        removeServerWrapper("READ_FROM_SERVER_WRITE_CLIENT:server closed",
-                            localConnects, listServers, serverConnection, threadId);
+        removeServerWrapper("READ_FROM_SERVER_WRITE_CLIENT", localConnects, listServers, serverConnection, threadId);
     } else if (result == NOT_FREE_CACHE_EXCEPTION) {
-        printf("READ_FROM_SERVER_WRITE_CLIENT:i dont have cache");
+        printf("handleCachingException: NOT_FREE_CACHE_EXCEPTION");
     } else if (result == STATUS_OR_CONTENT_LENGTH_EXCEPTION) {
         makeCacheInvalid(&cache[serverConnection->cacheIndex]);
-        removeServerWrapper("DO NOT NEED TO BE CACHED", localConnects,
+        removeServerWrapper("handleCachingException: STATUS_OR_CONTENT_LENGTH_EXCEPTION", localConnects,
                             listServers, serverConnection, threadId);
     } else if (result == END_READING_PROCCESS) {
-        removeServerWrapper("READ_FROM_SERVER_WRITE_CLIENT:SUCCESS",
+        removeServerWrapper("handleCachingException: END_READING_PROCCESS",
                             localConnects, listServers, serverConnection, threadId);
     } else if (result == PUT_CACHE_DATA_EXCEPTION) {
-        removeServerWrapper("PUT_CACHE_DATA_EXCEPTION",
+        removeServerWrapper("handleCachingException: PUT_CACHE_DATA_EXCEPTION",
                             localConnects, listServers, serverConnection, threadId);
-    } else {
-        printf("(default)");
     }
-
 }
 
 void handleSendingFromCacheException(int result, NodeClientConnection **list, ClientConnection *clientConnection,
